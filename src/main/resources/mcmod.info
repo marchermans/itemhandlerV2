@@ -1,0 +1,20 @@
+[
+  {
+    "modid": "itemhandlerV2",
+    "name": "ItemhandlerV2",
+    "description": "",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "url": "",
+    "updateUrl": "",
+    "authorList": [
+      ""
+    ],
+    "credits": "",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": [
+      ""
+    ]
+  }
+]
