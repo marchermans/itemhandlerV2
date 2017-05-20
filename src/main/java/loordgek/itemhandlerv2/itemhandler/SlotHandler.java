@@ -32,7 +32,7 @@ public class SlotHandler extends Slot {
 
     @Override
     public int getSlotStackLimit() {
-        return slotHandler.getSlotLimit();
+        return slotHandler.getLimit();
     }
 
     @Override
@@ -43,7 +43,7 @@ public class SlotHandler extends Slot {
 
     @Override
     public int getItemStackLimit(ItemStack stack) {
-        return slotHandler.getStackLimit(getSlotIndex(), stack);
+        return Math.min(slotHandler.getLimit(), stack.getMaxStackSize());
     }
 
     @Override

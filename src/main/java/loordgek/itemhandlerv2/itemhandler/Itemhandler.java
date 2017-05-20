@@ -2,17 +2,20 @@ package loordgek.itemhandlerv2.itemhandler;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.NonNullList;
+import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.items.ItemHandlerHelper;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
-public class Itemhandler implements IItemHandler, IItemSlotHandler {
+public class Itemhandler implements IItemHandler, IItemSlotHandler, INBTSerializable<NBTTagList> {
     private final NonNullList<ItemStack> stacks;
-    private final List<IInventoryObserver> observers = new ArrayList<>();
+
     private final int size;
 
     public Itemhandler(int size) {
@@ -20,26 +23,9 @@ public class Itemhandler implements IItemHandler, IItemSlotHandler {
         this.size = size;
     }
 
-    /**
-     * recommended is to return a {@link Collections.UnmodifiableList}.
-     *
-     * @return the content from this inventory.
-     */
-    @Override
-    public List<ItemStack> getContent() {
-        return Collections.unmodifiableList(stacks);
-    }
-
     @Override
     public int size() {
         return size;
-    }
-
-
-
-    @Override
-    public int getSlotLimit() {
-        return 64;
     }
 
     /**
@@ -51,29 +37,7 @@ public class Itemhandler implements IItemHandler, IItemSlotHandler {
         return true;
     }
 
-    /**
-     * @param stack ItemStack to check.
-     * @return if a stack in the inventory can be extracted.
-     */
-    @Override
-    public boolean canExtract(ItemStack stack) {
-        return true;
-    }
 
-    @Override
-    public void addObserver(IInventoryObserver observer) {
-        observers.add(observer);
-    }
-
-    @Override
-    public void removeObserver(IInventoryObserver observer) {
-        observers.remove(observer);
-    }
-
-    @Override
-    public List<IInventoryObserver> getObservers() {
-        return Collections.unmodifiableList(observers);
-    }
 
     /**
      * Returns the ItemStack in a given slot.
@@ -117,17 +81,13 @@ public class Itemhandler implements IItemHandler, IItemSlotHandler {
         if (existing.getCount() <= toExtract) {
 
             this.stacks.set(slot, ItemStack.EMPTY);
-            for (IInventoryObserver observer : observers) {
-                observer.onExtracted(this, existing);
-            }
+
 
             return existing;
         } else {
             ItemStack stack = ItemHandlerHelper.copyStackWithSize(existing, existing.getCount() - toExtract);
             this.stacks.set(slot, stack);
-            for (IInventoryObserver observer : observers) {
-                observer.onExtracted(this, stack);
-            }
+
 
             return stack;
         }
@@ -138,7 +98,7 @@ public class Itemhandler implements IItemHandler, IItemSlotHandler {
 
         ItemStack existing = this.stacks.get(slot);
 
-        int limit = getStackLimit(slot, stack);
+        int limit = Math.min(size(), stack.getMaxStackSize());
 
         if (!existing.isEmpty()) {
             if (!ItemHandlerHelper.canItemStacksStack(stack, existing))
@@ -153,14 +113,10 @@ public class Itemhandler implements IItemHandler, IItemSlotHandler {
 
         if (existing.isEmpty()) {
             this.stacks.set(slot, reachedLimit ? ItemHandlerHelper.copyStackWithSize(stack, limit) : stack);
-            for (IInventoryObserver observer : observers) {
-                observer.onExtracted(this, reachedLimit ? ItemHandlerHelper.copyStackWithSize(stack, limit) : stack);
-            }
+
         } else {
             existing.grow(reachedLimit ? limit : stack.getCount());
-            for (IInventoryObserver observer : observers) {
-                observer.onExtracted(this, existing);
-            }
+
         }
 
     }
@@ -177,14 +133,12 @@ public class Itemhandler implements IItemHandler, IItemSlotHandler {
         // Try to fill existing slots first
         for (ItemStack slot : stacks) {
             if (!slot.isEmpty()) {
-                int max = Math.min(remaining.getMaxStackSize(), getSlotLimit());
+                int max = Math.min(remaining.getMaxStackSize(), getLimit());
                 int transfer = Math.min(remaining.getCount(), max - slot.getCount());
                 if (transfer > 0 && ItemStack.areItemsEqual(slot, remaining) && ItemStack.areItemStackTagsEqual(slot, remaining)) {
                     slot.grow(transfer);
                     remaining.shrink(transfer);
-                    for (IInventoryObserver observer : observers) {
-                        observer.onExtracted(this, remaining);
-                    }
+
 
                     if (remaining.getCount() <= 0)
                         break;
@@ -196,9 +150,7 @@ public class Itemhandler implements IItemHandler, IItemSlotHandler {
         // Then place any remaining items in the first available empty slot
         if (remaining.getCount() > 0) {
             stacks.add(remaining);
-            for (IInventoryObserver observer : observers) {
-                observer.onInserted(this, remaining);
-            }
+
         } else return remaining;
 
         return ItemStack.EMPTY;
@@ -217,9 +169,7 @@ public class Itemhandler implements IItemHandler, IItemSlotHandler {
                     ItemStack pulled = slot.splitStack(available);
                     if (slot.getCount() < 1)
                         stacks.set(i, ItemStack.EMPTY);
-                    for (IInventoryObserver observer : observers) {
-                        observer.onExtracted(this, pulled);
-                    }
+
                     return pulled;
                 }
             }
@@ -228,8 +178,27 @@ public class Itemhandler implements IItemHandler, IItemSlotHandler {
     }
 
     @Override
+    public int getLimit() {
+        return 64;
+    }
+
+    @Override
     public boolean canTakeStack(int slot, EntityPlayer playerIn) {
         return true;
     }
 
+    @Override
+    public NBTTagList serializeNBT() {
+        return null;
+    }
+
+    @Override
+    public void deserializeNBT(NBTTagList nbt) {
+
+    }
+
+    @Override
+    public Iterator<ItemStack> iterator() {
+        return stacks.iterator();
+    }
 }

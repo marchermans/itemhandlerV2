@@ -2,70 +2,35 @@ package loordgek.itemhandlerv2.itemhandler;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
+import net.minecraftforge.items.ItemHandlerHelper;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
-public interface IItemHandler extends IItemViever, IInventoryObservable {
+public interface IItemHandler extends Iterable<ItemStack>{
     enum Void{
         ALLAYS,
         WHENFULL,
         NOT
     }
 
-    /**
-     * recommended is to return a {@link Collections.UnmodifiableList}.
-     * @return the content from this inventory.
-     */
-    List<ItemStack> getContent();
-
-    default List<ItemStack> copyContent(boolean removeEmpty){
-        if (removeEmpty){
-            List<ItemStack> stackList = new ArrayList<>(getContent());
-            stackList.removeIf(ItemStack::isEmpty);
-            return stackList;
-        }
-        else return new ArrayList<>(getContent());
-    }
+    int size();
 
     default Void isSlotVoid(int slot){
         return Void.NOT;
     }
 
-    //do we need to keep this ??
-    /**
-     * @param stack    ItemStack to check.
-     * @return if a stack in the inventory can be extracted.
-     */
-    boolean canExtract(ItemStack stack);
+    default int containsItem(ItemStack stack){
+        int items = 0;
+        while (iterator().hasNext()){
+            ItemStack itrstack = iterator().next();
+            if(ItemHandlerHelper.canItemStacksStack(itrstack, stack)){
+                items += itrstack.getCount();
+            }
+        }
+        return items;
+    }
 
-    List<IInventoryObserver> getObservers();
-
-    /**
-     * Returns the ItemStack in a given slot.
-     *
-     * The result's stack size may be greater than the itemstacks max size.
-     *
-     * If the result is ItemStack.EMPTY, then the slot is empty.
-     *
-     * THIS WILL NOT WORK SEE https://github.com/MinecraftForge/MinecraftForge/issues/3493
-     * If the result is not null but the stack size is zero, then it represents
-     * an empty slot that will only accept* a specific itemstack.
-     *
-     * <p/>
-     * IMPORTANT: This ItemStack MUST NOT be modified. This method is not for
-     * altering an inventories contents. Any implementers who are able to detect
-     * modification through this method should throw an exception.
-     * <p/>
-     * SERIOUSLY: DO NOT MODIFY THE RETURNED ITEMSTACK
-     *
-     * @param slot Slot to query
-     * @return ItemStack in given slot. Can be ItemStack.EMPTY.
-     **/
-    @Nonnull
-    ItemStack getStackInSlot(int slot);
+    boolean isStackValid(ItemStack stack);
 
     /**
      * Inserts an ItemStack into the given slot and return the remainder.
@@ -104,16 +69,20 @@ public interface IItemHandler extends IItemViever, IInventoryObservable {
     @Nonnull
     default NonNullList<ItemStack> bulkExtract(@Nonnull IItemFilter filter, int min, int max, int maxstacks, boolean simulate){
         NonNullList<ItemStack> itemStacklist = NonNullList.create();
-        int todo = max;
+        int currentslot = 0;
         int stacksextracted = 0;
         int itemsextracted = 0;
-        while (!(stacksextracted > maxstacks) || !(itemsextracted > todo)){
+        while (!(stacksextracted > maxstacks) || !(itemsextracted > max || currentslot <= size())){
             ItemStack extractedstack = extract(filter, min, max - itemsextracted, simulate);
             if (!extractedstack.isEmpty()){
                 itemsextracted += extractedstack.getCount();
                 stacksextracted ++;
+                itemStacklist.add(extractedstack);
             }
+            currentslot++;
         }
         return itemStacklist;
     }
+
+    int getLimit();
 }

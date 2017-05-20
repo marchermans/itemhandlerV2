@@ -5,7 +5,7 @@ import net.minecraft.item.ItemStack;
 
 import javax.annotation.Nonnull;
 
-public interface IItemSlotHandler extends IItemViever, IInventoryObservable {
+public interface IItemSlotHandler{
 
     ItemStack decrStackSize(int slot, int amount);
 
@@ -13,5 +13,9 @@ public interface IItemSlotHandler extends IItemViever, IInventoryObservable {
 
     boolean canTakeStack(int slot, EntityPlayer playerIn);
 
+    boolean isStackValid(ItemStack stack);
 
+    ItemStack getStackInSlot(int slotIndex);
+
+    int getLimit();
 }
