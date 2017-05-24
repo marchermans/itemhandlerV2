@@ -12,9 +12,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Predicate;
 
 public class Itemhandler implements IItemHandler, IItemSlotHandler, INBTSerializable<NBTTagList> {
     private final NonNullList<ItemStack> stacks;
+    private final List<IItemHandlerObserver> observerList = new ArrayList<>();
 
     private final int size;
 
@@ -37,29 +39,6 @@ public class Itemhandler implements IItemHandler, IItemSlotHandler, INBTSerializ
         return true;
     }
 
-
-
-    /**
-     * Returns the ItemStack in a given slot.
-     * <p>
-     * The result's stack size may be greater than the itemstacks max size.
-     * <p>
-     * If the result is ItemStack.EMPTY, then the slot is empty.
-     * <p>
-     * THIS WILL NOT WORK SEE https://github.com/MinecraftForge/MinecraftForge/issues/3493
-     * If the result is not null but the stack size is zero, then it represents
-     * an empty slot that will only accept* a specific itemstack.
-     * <p>
-     * <p/>
-     * IMPORTANT: This ItemStack MUST NOT be modified. This method is not for
-     * altering an inventories contents. Any implementers who are able to detect
-     * modification through this method should throw an exception.
-     * <p/>
-     * SERIOUSLY: DO NOT MODIFY THE RETURNED ITEMSTACK
-     *
-     * @param slot Slot to query
-     * @return ItemStack in given slot. Can be ItemStack.EMPTY.
-     **/
     @Nonnull
     @Override
     public ItemStack getStackInSlot(int slot) {
@@ -158,7 +137,7 @@ public class Itemhandler implements IItemHandler, IItemSlotHandler, INBTSerializ
 
     @Nonnull
     @Override
-    public ItemStack extract(@Nonnull IItemFilter filter, int min, int max, boolean simulate) {
+    public ItemStack extract(Predicate<ItemStack> filter, int min, int max, boolean simulate) {
         if (max == 0)
             return ItemStack.EMPTY;
         for (int i = 0; i < stacks.size(); i++) {
@@ -176,6 +155,36 @@ public class Itemhandler implements IItemHandler, IItemSlotHandler, INBTSerializ
         }
         return ItemStack.EMPTY;
     }
+
+    @Nonnull
+    @Override
+    public ItemStack extractFromSlot(Predicate<ItemStack> filter, int slot, int amount, boolean simulate) {
+        ItemStack stack = stacks.get(slot);
+        if (!stack.isEmpty()){
+            int available = Math.min(amount, stack.getCount());
+            if (filter.test(stack) && available > 0){
+
+                if (!simulate){
+                    ItemStack pulled = stack.splitStack(available);
+                    if (stack.isEmpty()){
+                        stacks.set(slot, ItemStack.EMPTY);
+                    }
+                    onExtracted(slot, stack);
+                    return pulled;
+
+                }
+                else {
+                    ItemStack copy = stack.copy();
+                    copy.setCount(available);
+                    return copy;
+                }
+
+            }
+        }
+
+        return ItemStack.EMPTY;
+    }
+
 
     @Override
     public int getLimit() {
@@ -198,7 +207,7 @@ public class Itemhandler implements IItemHandler, IItemSlotHandler, INBTSerializ
     }
 
     @Override
-    public Iterator<ItemStack> iterator() {
-        return stacks.iterator();
+    public List<IItemHandlerObserver> itemObserverList() {
+        return observerList;
     }
 }

@@ -8,6 +8,7 @@ import net.minecraft.util.EnumFacing;
 
 import javax.annotation.Nonnull;
 import java.util.Iterator;
+import java.util.function.Predicate;
 
 public class ISidedInventoryWrapper implements IItemHandler {
     private final ISidedInventory inventory;
@@ -37,7 +38,7 @@ public class ISidedInventoryWrapper implements IItemHandler {
 
     @Nonnull
     @Override
-    public ItemStack extract(@Nonnull IItemFilter filter, int min, int max, boolean simulate) {
+    public ItemStack extract(Predicate<ItemStack> filter, int min, int max, boolean simulate) {
         return null;
     }
 
@@ -46,8 +47,9 @@ public class ISidedInventoryWrapper implements IItemHandler {
         return 0;
     }
 
+    @Nonnull
     @Override
-    public Iterator<ItemStack> iterator() {
-        return null;
+    public ItemStack getStackInSlot(int slot) {
+       return inventory.getStackInSlot(slot);
     }
 }

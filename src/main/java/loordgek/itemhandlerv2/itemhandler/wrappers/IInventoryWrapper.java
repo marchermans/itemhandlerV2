@@ -8,14 +8,13 @@ import net.minecraftforge.items.ItemHandlerHelper;
 
 import javax.annotation.Nonnull;
 import java.util.Iterator;
+import java.util.function.Predicate;
 
-public class IIinventoryWrapper implements IItemHandler {
+public class IInventoryWrapper implements IItemHandler {
     private final IInventory inventory;
-    private final Iterator<ItemStack> itemStackIterator;
 
-    public IIinventoryWrapper(IInventory inventory, Iterator<ItemStack> itemStackIterator) {
+    public IInventoryWrapper(IInventory inventory) {
         this.inventory = inventory;
-        this.itemStackIterator = itemStackIterator;
     }
 
     @Override
@@ -29,6 +28,12 @@ public class IIinventoryWrapper implements IItemHandler {
     }
 
     @Override
+    @Nonnull
+    public ItemStack getStackInSlot(int slot) {
+       return inventory.getStackInSlot(slot);
+    }
+
+    @Override
     public boolean isStackValid(@Nonnull ItemStack stack) {
         for (int i = 0; i < size(); i++) {
             if (inventory.isItemValidForSlot(i, stack))
@@ -36,8 +41,6 @@ public class IIinventoryWrapper implements IItemHandler {
         }
         return false;
     }
-
-
 
     @Nonnull
     @Override
@@ -96,7 +99,7 @@ public class IIinventoryWrapper implements IItemHandler {
 
     @Nonnull
     @Override
-    public ItemStack extract(@Nonnull IItemFilter filter, int min, int max, boolean simulate) {
+    public ItemStack extract(Predicate<ItemStack> filter, int min, int max, boolean simulate) {
         for (int i = 0; i < size(); i++) {
             ItemStack stack = inventory.getStackInSlot(i);
             if (filter.test(stack) && stack.getCount() >= min) {
@@ -109,10 +112,5 @@ public class IIinventoryWrapper implements IItemHandler {
 
         }
         return ItemStack.EMPTY;
-    }
-
-    @Override
-    public Iterator<ItemStack> iterator() {
-        return itemStackIterator;
     }
 }

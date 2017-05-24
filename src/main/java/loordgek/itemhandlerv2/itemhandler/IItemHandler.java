@@ -5,8 +5,9 @@ import net.minecraft.util.NonNullList;
 import net.minecraftforge.items.ItemHandlerHelper;
 
 import javax.annotation.Nonnull;
+import java.util.function.Predicate;
 
-public interface IItemHandler extends Iterable<ItemStack>{
+public interface IItemHandler extends Iterable<ItemStack>, IItemHandlerObservable{
     enum Void{
         ALLAYS,
         WHENFULL,
@@ -19,7 +20,7 @@ public interface IItemHandler extends Iterable<ItemStack>{
         return Void.NOT;
     }
 
-    default int containsItem(ItemStack stack){
+    default int containsItems(ItemStack stack){
         int items = 0;
         while (iterator().hasNext()){
             ItemStack itrstack = iterator().next();
@@ -31,6 +32,11 @@ public interface IItemHandler extends Iterable<ItemStack>{
     }
 
     boolean isStackValid(ItemStack stack);
+
+    int getLimit();
+
+    @Nonnull
+    ItemStack getStackInSlot(int slot);
 
     /**
      * Inserts an ItemStack into the given slot and return the remainder.
@@ -53,7 +59,10 @@ public interface IItemHandler extends Iterable<ItemStack>{
      * @return ItemStack extracted from the slot, must be ItemStack.EMPTY, if nothing can be extracted
      **/
     @Nonnull
-    ItemStack extract(@Nonnull IItemFilter filter, int min, int max, boolean simulate);
+    ItemStack extract(Predicate<ItemStack> filter, int min, int max, boolean simulate);
+
+    @Nonnull
+    ItemStack extractFromSlot(Predicate<ItemStack> filter, int slot, int amount, boolean simulate);
 
     //i want here a bulk inset method where the return stack stacksize and the parameter stack stacksize can be greater than the normal stacksize. good idea??
     @Nonnull
@@ -67,7 +76,7 @@ public interface IItemHandler extends Iterable<ItemStack>{
 
     //i want here a bulk extract method where the return stack stacksize and the parameter stack stacksize can be greater than the normal stacksize. good idea??
     @Nonnull
-    default NonNullList<ItemStack> bulkExtract(@Nonnull IItemFilter filter, int min, int max, int maxstacks, boolean simulate){
+    default NonNullList<ItemStack> bulkExtract(Predicate<ItemStack> filter, int min, int max, int maxstacks, boolean simulate){
         NonNullList<ItemStack> itemStacklist = NonNullList.create();
         int currentslot = 0;
         int stacksextracted = 0;
@@ -84,5 +93,10 @@ public interface IItemHandler extends Iterable<ItemStack>{
         return itemStacklist;
     }
 
-    int getLimit();
+    default ItemExtractor getItemExtractor(Predicate<ItemStack> filter, int slot){
+        ItemExtractor extractor = new ItemExtractor(this, filter, slot);
+        addObserver(extractor);
+        return extractor;
+
+    }
 }

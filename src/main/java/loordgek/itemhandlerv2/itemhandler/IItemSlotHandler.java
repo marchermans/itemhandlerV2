@@ -5,7 +5,7 @@ import net.minecraft.item.ItemStack;
 
 import javax.annotation.Nonnull;
 
-public interface IItemSlotHandler{
+public interface IItemSlotHandler extends IItemHandlerObservable{
 
     ItemStack decrStackSize(int slot, int amount);
 

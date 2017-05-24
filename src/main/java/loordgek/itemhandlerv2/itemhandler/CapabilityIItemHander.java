@@ -14,7 +14,7 @@ import java.util.concurrent.Callable;
 public class CapabilityIItemHander {
 
     @CapabilityInject(IItemHandler.class)
-    public static IItemHandler ITEM_HANDLER_CAPABILITY = null;
+    public static Capability<IItemHandler> ITEM_HANDLER_CAPABILITY = null;
 
     public static void register(){
         CapabilityManager.INSTANCE.register(IItemHandler.class, new Capability.IStorage<IItemHandler>() {
