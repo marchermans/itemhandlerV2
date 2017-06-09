@@ -1,24 +1,18 @@
-package loordgek.itemhandlerv2.itemhandler;
+package loordgek.itemhandlerv2;
+
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
 import net.minecraftforge.items.ItemHandlerHelper;
 
 import javax.annotation.Nonnull;
+import java.util.List;
+import java.util.OptionalInt;
 import java.util.function.Predicate;
 
-public interface IItemHandler extends Iterable<ItemStack>, IItemHandlerObservable{
-    enum Void{
-        ALLAYS,
-        WHENFULL,
-        NOT
-    }
+public interface IItemHandler extends Iterable<ItemStack>, IItemHandlerObservable {
 
     int size();
-
-    default Void isSlotVoid(int slot){
-        return Void.NOT;
-    }
 
     default int containsItems(ItemStack stack){
         int items = 0;
@@ -33,7 +27,14 @@ public interface IItemHandler extends Iterable<ItemStack>, IItemHandlerObservabl
 
     boolean isStackValid(ItemStack stack);
 
-    int getLimit();
+    List<ItemStack> getContent();
+
+    /**
+     *
+     * @return A Integer in the range [0,scale] representing how "full" this inventory is.
+     */
+    //todo give me a better name
+    int calcRedstoneFromInventory(int scale);
 
     @Nonnull
     ItemStack getStackInSlot(int slot);
@@ -51,18 +52,15 @@ public interface IItemHandler extends Iterable<ItemStack>, IItemHandlerObservabl
     ItemStack insert(@Nonnull ItemStack stack, boolean simulate);
 
     /**
-     * Extracts an ItemStack from the given slot. The returned value must be ItemStack.EMPTY
-     * if nothing is extracted, otherwise it's stack size must not be greater than amount or the
-     * itemstacks getMaxStackSize().
      *
-     * @param simulate If true, the extraction is only simulated
-     * @return ItemStack extracted from the slot, must be ItemStack.EMPTY, if nothing can be extracted
-     **/
+     * @param filter
+     * @param slot the slot to extract from, if you don't care use OptionalInt.empty
+     * @param amount the amount to extract
+     * @param simulate If true, the insertion is only simulated
+     * @return
+     */
     @Nonnull
-    ItemStack extract(Predicate<ItemStack> filter, int min, int max, boolean simulate);
-
-    @Nonnull
-    ItemStack extractFromSlot(Predicate<ItemStack> filter, int slot, int amount, boolean simulate);
+    ItemStack extract(Predicate<ItemStack> filter, OptionalInt slot, int amount, boolean simulate);
 
     //i want here a bulk inset method where the return stack stacksize and the parameter stack stacksize can be greater than the normal stacksize. good idea??
     @Nonnull
@@ -81,8 +79,9 @@ public interface IItemHandler extends Iterable<ItemStack>, IItemHandlerObservabl
         int currentslot = 0;
         int stacksextracted = 0;
         int itemsextracted = 0;
+
         while (!(stacksextracted > maxstacks) || !(itemsextracted > max || currentslot <= size())){
-            ItemStack extractedstack = extract(filter, min, max - itemsextracted, simulate);
+            ItemStack extractedstack = extract(filter, OptionalInt.empty(), Math.min(Math.min(stacksextracted, max), getStackInSlot(currentslot).getCount()), simulate);
             if (!extractedstack.isEmpty()){
                 itemsextracted += extractedstack.getCount();
                 stacksextracted ++;
@@ -91,12 +90,5 @@ public interface IItemHandler extends Iterable<ItemStack>, IItemHandlerObservabl
             currentslot++;
         }
         return itemStacklist;
-    }
-
-    default ItemExtractor getItemExtractor(Predicate<ItemStack> filter, int slot){
-        ItemExtractor extractor = new ItemExtractor(this, filter, slot);
-        addObserver(extractor);
-        return extractor;
-
     }
 }

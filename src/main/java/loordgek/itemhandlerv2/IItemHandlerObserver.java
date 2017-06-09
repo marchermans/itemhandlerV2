@@ -1,4 +1,4 @@
-package loordgek.itemhandlerv2.itemhandler;
+package loordgek.itemhandlerv2;
 
 import net.minecraft.item.ItemStack;
 

@@ -1,11 +1,10 @@
-package loordgek.itemhandlerv2.itemhandler;
+package loordgek.itemhandlerv2;
 
 import net.minecraft.item.ItemStack;
 
 import java.util.List;
 
 public interface IItemHandlerObservable {
-
     //DO NOT MODIFY THE LIST
     //todo J9 make this private
     List<IItemHandlerObserver> itemObserverList();
@@ -29,5 +28,4 @@ public interface IItemHandlerObservable {
             observer.onExtracted(this, slot, stack);
         }
     }
-
 }
