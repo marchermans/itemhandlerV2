@@ -6,6 +6,7 @@ import net.minecraft.util.NonNullList;
 import net.minecraftforge.items.ItemHandlerHelper;
 
 import javax.annotation.Nonnull;
+import java.util.Iterator;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.function.Predicate;
@@ -16,7 +17,8 @@ public interface IItemHandler extends Iterable<ItemStack>, IItemHandlerObservabl
 
     default int containsItems(ItemStack stack){
         int items = 0;
-        while (iterator().hasNext()){
+        Iterator<ItemStack> stackIterator = iterator();
+        while (stackIterator.hasNext()){
             ItemStack itrstack = iterator().next();
             if(ItemHandlerHelper.canItemStacksStack(itrstack, stack)){
                 items += itrstack.getCount();
