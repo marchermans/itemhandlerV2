@@ -13,9 +13,13 @@ public interface IItemHandler extends IItemHandlerObservable {
 
     int size();
 
-    boolean isStackValid(ItemStack stack);
+    default boolean isStackValid(ItemStack stack){
+        return true;
+    }
 
-    boolean canExtraxtFormInv();
+    default boolean canExtractFormInv(){
+        return true;
+    }
 
     default ItemHandlerIterator itemhandlerIterator() {
         return new ItemHandlerIterator(this);
@@ -34,7 +38,7 @@ public interface IItemHandler extends IItemHandlerObservable {
                 ItemStack itemstack = getStackInSlot(j);
 
                 if (!itemstack.isEmpty()) {
-                    proportion += (float) itemstack.getCount() / (float) getStacklimit(itemstack, j);
+                    proportion += (float) itemstack.getCount() / (float) getStackLimit(itemstack);
                     ++itemsFound;
                 }
             }
@@ -44,10 +48,10 @@ public interface IItemHandler extends IItemHandlerObservable {
         }
     }
 
-    int getSlotLimit(int slot);
+    int getSlotLimit();
 
-    default int getStacklimit(ItemStack stack, int slot) {
-        return Math.min(stack.getMaxStackSize(), getSlotLimit(slot));
+    default int getStackLimit(ItemStack stack) {
+        return Math.min(stack.getMaxStackSize(), getSlotLimit());
     }
 
     @Nonnull
@@ -59,43 +63,45 @@ public interface IItemHandler extends IItemHandlerObservable {
      * Note: This behaviour is subtly different from IFluidHandlers.fill()
      *
      * @param simulate If true, the insertion is only simulated
+     * @param stack    the stack to insert
      * @param slot     the slot to insert to, if you don't care use OptionalInt.empty
      * @return The remaining ItemStack that was not inserted (if the entire stack is accepted, then return ItemStack.EMPTY).
      * May be the same as the input ItemStack if unchanged, otherwise a new ItemStack.
      **/
     @Nonnull
-    ItemStack insert(@Nonnull ItemStack stack, OptionalInt slot, boolean simulate);
+    InsertTransaction insert(@Nonnull ItemStack stack, OptionalInt slot, boolean simulate);
 
     /**
-     * @param filter
+     * @param filter   the filter to use to extract
      * @param slot     the slot to extract from, if you don't care use OptionalInt.empty
      * @param amount   the amount to extract
      * @param simulate If true, the insertion is only simulated
-     * @return
+     * @return ItemStack extracted from the slot, must be ItemStack.EMPTY, if nothing can be extracted
      */
     @Nonnull
-    ItemStack extract(Predicate<ItemStack> filter, OptionalInt slot, int amount, boolean simulate);
+    ItemStack extract(@Nonnull Predicate<ItemStack> filter, OptionalInt slot, int amount, boolean simulate);
 
     //i want here a bulk inset method where the return stack stacksize and the parameter stack stacksize can be greater than the normal stacksize. good idea??
     @Nonnull
-    default NonNullList<ItemStack> bulkInsert(@Nonnull NonNullList<ItemStack> stackNonNullList, boolean simulate) {
-        NonNullList<ItemStack> itemStacklist = NonNullList.create();
+    default MultiInsertTransaction bulkInsert(@Nonnull NonNullList<ItemStack> stackNonNullList, boolean simulate) {
+        MultiInsertTransaction multiInsertTransaction = new MultiInsertTransaction();
         for (ItemStack stack : stackNonNullList) {
-            itemStacklist.add(insert(stack, OptionalInt.empty(), simulate));
+            multiInsertTransaction.addInsertTransaction(insert(stack, OptionalInt.empty(), simulate));
         }
-        return itemStacklist;
+        return multiInsertTransaction;
     }
 
     //i want here a bulk extract method where the return stack stacksize and the parameter stack stacksize can be greater than the normal stacksize. good idea??
     @Nonnull
-    default NonNullList<ItemStack> bulkExtract(Predicate<ItemStack> filter, int min, int max, int maxstacks, boolean simulate) {
+    default NonNullList<ItemStack> bulkExtract(@Nonnull Predicate<ItemStack> filter, int maxItems, int maxStacks, boolean simulate) {
         NonNullList<ItemStack> itemStacklist = NonNullList.create();
+        if (!canExtractFormInv()) return itemStacklist;
         int currentslot = 0;
         int stacksextracted = 0;
         int itemsextracted = 0;
 
-        while (!(stacksextracted > maxstacks) || !(itemsextracted > max || currentslot <= size())) {
-            ItemStack extractedstack = extract(filter, OptionalInt.empty(), Math.min(Math.min(stacksextracted, max), getStackInSlot(currentslot).getCount()), simulate);
+        while (!(stacksextracted > maxStacks) || !(itemsextracted > maxItems || currentslot <= size())) {
+            ItemStack extractedstack = extract(filter, OptionalInt.empty(), Math.min(Math.min(stacksextracted, maxItems), getStackInSlot(currentslot).getCount()), simulate);
             if (!extractedstack.isEmpty()) {
                 itemsextracted += extractedstack.getCount();
                 stacksextracted++;
