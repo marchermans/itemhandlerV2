@@ -6,21 +6,21 @@ import net.minecraft.util.NonNullList;
 
 public class MultiInsertTransaction {
 
-    private final NonNullList<ItemStack> insertedStack = NonNullList.create();
+    private final NonNullList<ItemStack> insertedStacks = NonNullList.create();
 
-    private final NonNullList<ItemStack> leftoverStack = NonNullList.create();
+    private final NonNullList<ItemStack> leftoverStacks = NonNullList.create();
 
-    public NonNullList<ItemStack> getInsertedStack() {
-        return insertedStack;
+    public NonNullList<ItemStack> getInsertedStacks() {
+        return insertedStacks;
     }
 
-    public NonNullList<ItemStack> getLeftoverStack() {
-        return leftoverStack;
+    public NonNullList<ItemStack> getLeftoverStacks() {
+        return leftoverStacks;
     }
 
     public void addInsertTransaction(InsertTransaction insertTransaction){
-        insertedStack.add(insertTransaction.getInsertedStack());
-        leftoverStack.add(insertTransaction.getLeftoverStack());
+        insertedStacks.add(insertTransaction.getInsertedStack());
+        leftoverStacks.add(insertTransaction.getLeftoverStack());
     }
 
 
