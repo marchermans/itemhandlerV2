@@ -178,7 +178,7 @@ public class ItemHandler implements IItemHandler {
                 ItemStack existing = stacks.get(i);
                 if (filter.test(existing)) {
 
-                    int toExtract = Math.min(amount, existing.getMaxStackSize());
+                    int toExtract = Math.min(amount, existing.getCount());
 
                     if (existing.getCount() <= toExtract) {
                         if (!simulate) {

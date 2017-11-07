@@ -14,4 +14,14 @@ public class ItemHandlerHelperV2 {
         leftover.setCount(itemStack.getCount() - insert.getCount());
         return new InsertTransaction(insert, leftover.getCount() != 0 ? leftover : ItemStack.EMPTY);
     }
+
+    public static InsertTransaction insertIntoExistingStack(@Nonnull ItemStack target, ItemStack stack, boolean simulate){
+        if (!ItemHandlerHelper.canItemStacksStack(target, stack)){
+            return new InsertTransaction(ItemStack.EMPTY, stack);
+        }
+        int freeSpace = stack.getCount() - target.getMaxStackSize();
+        if (!simulate)
+            target.grow(freeSpace);
+        return split(stack, freeSpace);
+    }
 }
