@@ -32,12 +32,13 @@ public class InvWrapper implements IItemHandler {
     }
 
     @Override
-    public boolean isStackValid(ItemStack stack) {
-        for (int i = 0; i < size(); i++) {
-            if (getInventory().isItemValidForSlot(i, stack))
-                return true;
-        }
-        return false;
+    public boolean isStackValidForSlot(ItemStack stack, int slot) {
+        return getInventory().isItemValidForSlot(slot, stack);
+    }
+
+    @Override
+    public void clear() {
+        getInventory().clear();
     }
 
     @Nonnull
@@ -51,7 +52,7 @@ public class InvWrapper implements IItemHandler {
     public InsertTransaction insert(@Nonnull ItemStack stack, OptionalInt slot, boolean simulate) {
         if (stack.isEmpty())
             return new InsertTransaction(ItemStack.EMPTY, ItemStack.EMPTY);
-        if (slot.isPresent()){
+        if (slot.isPresent()) {
             int index = slot.getAsInt();
 
             ItemStack existing = getStackInSlot(index);
@@ -60,7 +61,7 @@ public class InvWrapper implements IItemHandler {
             if (!getInventory().isItemValidForSlot(index, stack))
                 return new InsertTransaction(ItemStack.EMPTY, stack);
 
-            int limit = getStackLimit(stack);
+            int limit = stack.getCount();
 
             if (!existing.isEmpty()) {
                 if (!ItemHandlerHelper.canItemStacksStack(stack, existing))
@@ -75,36 +76,47 @@ public class InvWrapper implements IItemHandler {
             InsertTransaction transaction = ItemHandlerHelperV2.split(stack, limit);
             if (!simulate) {
                 if (existing.isEmpty()) {
-                    getInventory().setInventorySlotContents(index,  transaction.getInsertedStack());
+                    getInventory().setInventorySlotContents(index, transaction.getInsertedStack());
                     getInventory().markDirty();
                 } else {
-                    transaction = ItemHandlerHelperV2.insertIntoExistingStack(existing, stack, false);
+                    transaction = ItemHandlerHelperV2.insertIntoExistingStack(existing, stack, limit, false);
                     getInventory().markDirty();
 
                 }
             }
             return transaction;
-        }
-        else{
+        } else {
+
             for (int i = 0; i < size(); i++) {
-                int limit = getStackLimit(stack);
-                if (getInventory().isItemValidForSlot(i, stack)){
-                    ItemStack existing = getStackInSlot(i);
 
-                    InsertTransaction transaction;
-                    if (existing.isEmpty()){
-                        transaction = ItemHandlerHelperV2.split(stack, limit);
-                        if (simulate) {
-                            getInventory().setInventorySlotContents(i, transaction.getInsertedStack());
-                            getInventory().markDirty();
-                        }
-                    }
+                ItemStack existing = getStackInSlot(i);
 
-                    else {
-                        transaction = ItemHandlerHelperV2.insertIntoExistingStack(existing, stack, simulate);
+
+                if (!getInventory().isItemValidForSlot(i, stack))
+                    return new InsertTransaction(ItemStack.EMPTY, stack);
+
+                int limit = stack.getCount();
+
+                if (!existing.isEmpty()) {
+                    if (!ItemHandlerHelper.canItemStacksStack(stack, existing))
+                        return new InsertTransaction(ItemStack.EMPTY, stack);
+
+                    limit -= existing.getCount();
+                }
+
+                if (limit <= 0)
+                    return new InsertTransaction(ItemStack.EMPTY, stack);
+
+                InsertTransaction transaction = ItemHandlerHelperV2.split(stack, limit);
+                if (!simulate) {
+                    if (existing.isEmpty()) {
+                        getInventory().setInventorySlotContents(i, transaction.getInsertedStack());
                         getInventory().markDirty();
-                    }
+                    } else {
+                        transaction = ItemHandlerHelperV2.insertIntoExistingStack(existing, stack, limit, false);
+                        getInventory().markDirty();
 
+                    }
                     return transaction;
                 }
             }
@@ -115,7 +127,57 @@ public class InvWrapper implements IItemHandler {
     @Nonnull
     @Override
     public ItemStack extract(@Nonnull Predicate<ItemStack> filter, OptionalInt slot, int amount, boolean simulate) {
-        return null;
+        if (amount == 0) return ItemStack.EMPTY;
+        if (slot.isPresent()) {
+
+            ItemStack stackInSlot = getStackInSlot(slot.getAsInt());
+
+            if (stackInSlot.isEmpty())
+                return ItemStack.EMPTY;
+
+            if (!filter.test(stackInSlot))
+                return ItemStack.EMPTY;
+
+            if (simulate) {
+                if (stackInSlot.getCount() < amount) {
+                    return stackInSlot.copy();
+                } else {
+                    ItemStack copy = stackInSlot.copy();
+                    copy.setCount(amount);
+                    return copy;
+                }
+            } else {
+                int m = Math.min(stackInSlot.getCount(), amount);
+
+                ItemStack decrStackSize = getInventory().decrStackSize(slot.getAsInt(), m);
+                getInventory().markDirty();
+                return decrStackSize;
+            }
+
+        } else {
+            for (int i = 0; i < size(); i++) {
+
+                ItemStack stackInSlot = getStackInSlot(i);
+                if (stackInSlot.isEmpty() && !filter.test(stackInSlot)) continue;
+                if (simulate) {
+                    if (stackInSlot.getCount() < amount) {
+                        return stackInSlot.copy();
+                    } else {
+                        ItemStack copy = stackInSlot.copy();
+                        copy.setCount(amount);
+                        return copy;
+                    }
+                } else {
+                    int m = Math.min(stackInSlot.getCount(), amount);
+
+                    ItemStack decrStackSize = getInventory().decrStackSize(i, m);
+                    if (decrStackSize.isEmpty()) continue;
+                    getInventory().markDirty();
+                    return decrStackSize;
+                }
+            }
+        }
+        return ItemStack.EMPTY;
     }
 
     @Override

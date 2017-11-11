@@ -3,7 +3,6 @@ package loordgek.itemhandlerv2;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
-import net.minecraft.util.math.MathHelper;
 
 import javax.annotation.Nonnull;
 import java.util.OptionalInt;
@@ -13,45 +12,56 @@ public interface IItemHandler extends IItemHandlerObservable {
 
     int size();
 
-    default boolean isStackValid(ItemStack stack){
+    default boolean isStackValidForSlot(ItemStack stack, int slot) {
         return true;
     }
 
-    default boolean canExtractFormInv(){
+    default boolean canExtractFormInv() {
         return true;
     }
 
-    default ItemHandlerIterator itemhandlerIterator() {
-        return new ItemHandlerIterator(this);
+    default IItemHandlerIterator itemhandlerIterator(boolean skipEmpty) {
+        return new ItemHandlerIterator(this, skipEmpty);
     }
 
     /**
      * @return A Integer in the range [0,scale] representing how "full" this inventory is.
      */
     //todo give me a better name
-    default int calcRedstoneFromInventory(int scale) {
-        {
-            int itemsFound = 0;
-            float proportion = 0.0F;
+    default float calcRedStoneFromInventory(int scale) {
 
-            for (int j = 0; j < size(); ++j) {
-                ItemStack itemstack = getStackInSlot(j);
+        float proportion = 0.0F;
 
-                if (!itemstack.isEmpty()) {
-                    proportion += (float) itemstack.getCount() / (float) getStackLimit(itemstack);
-                    ++itemsFound;
-                }
+        for (int j = 0; j < size(); ++j) {
+            ItemStack itemstack = getStackInSlot(j);
+
+            if (!itemstack.isEmpty()) {
+                proportion += (float) itemstack.getCount() / (float) getStackLimit(itemstack);
             }
-
-            proportion = proportion / (float) size();
-            return MathHelper.floor(proportion * scale - 1) + (itemsFound > 0 ? 1 : 0);
         }
+
+        proportion = proportion / (float) size();
+
+        return (proportion * scale);
     }
+
+    void clear();
 
     int getSlotLimit();
 
     default int getStackLimit(ItemStack stack) {
         return Math.min(stack.getMaxStackSize(), getSlotLimit());
+    }
+
+    default int getFreeSpaceForSlot(int slot){
+        ItemStack existing = getStackInSlot(slot);
+        if (!existing.isEmpty()){
+            if (!existing.isStackable()){
+                return 0;
+            }
+            else return getSlotLimit() - existing.getCount();
+        }
+        return getSlotLimit();
     }
 
     @Nonnull

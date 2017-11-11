@@ -1,0 +1,20 @@
+package loordgek.itemhandlerv2.filter;
+
+import net.minecraft.item.ItemStack;
+import net.minecraftforge.oredict.OreDictionary;
+import org.apache.commons.lang3.ArrayUtils;
+
+import java.util.function.Predicate;
+
+public class OreDictFilter implements Predicate<ItemStack>{
+    private final String oreName;
+
+    public OreDictFilter(String oreName) {
+        this.oreName = oreName;
+    }
+
+    @Override
+    public boolean test(ItemStack stack) {
+        return !stack.isEmpty() && ArrayUtils.contains(OreDictionary.getOreIDs(stack), OreDictionary.getOreID(oreName));
+    }
+}

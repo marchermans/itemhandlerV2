@@ -26,6 +26,11 @@ public class ItemHandler implements IItemHandler {
     }
 
     @Override
+    public void clear() {
+        stacks.clear();
+    }
+
+    @Override
     public int getSlotLimit() {
         return 64;
     }
@@ -42,13 +47,15 @@ public class ItemHandler implements IItemHandler {
         if (stack.isEmpty())
             return new InsertTransaction(ItemStack.EMPTY, ItemStack.EMPTY);
 
-        if (!isStackValid(stack)) {
-            return new InsertTransaction(ItemStack.EMPTY, stack);
-        }
+
 
         if (slot.isPresent()) {
 
             int index = slot.getAsInt();
+
+            if (!isStackValidForSlot(stack, index)) {
+                return new InsertTransaction(ItemStack.EMPTY, stack);
+            }
 
             validateSlotIndex(index);
 
