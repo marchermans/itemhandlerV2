@@ -1,7 +1,7 @@
 package loordgek.itemhandlerv2.test;
 
-import loordgek.itemhandlerv2.CapbilityItemHandler;
-import loordgek.itemhandlerv2.IItemHandler;
+import loordgek.itemhandlerv2.itemhandler.CapbilityItemHandler;
+import loordgek.itemhandlerv2.itemhandler.IItemHandler;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;

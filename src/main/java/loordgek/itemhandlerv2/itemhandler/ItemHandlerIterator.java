@@ -1,4 +1,4 @@
-package loordgek.itemhandlerv2;
+package loordgek.itemhandlerv2.itemhandler;
 
 import net.minecraft.item.ItemStack;
 
@@ -54,7 +54,7 @@ public class ItemHandlerIterator implements IItemHandlerIterator {
             throw new NullPointerException();
         ItemStack stack = itemHandler.getStackInSlot(index);
         if (skipEmpty){
-            if (stack.isEmpty()) {
+            if (stack.isEmpty() && index < size()) {
                 index++;
                 next();
             }
@@ -77,9 +77,9 @@ public class ItemHandlerIterator implements IItemHandlerIterator {
             throw new NullPointerException();
         ItemStack stack = itemHandler.getStackInSlot(index);
         if (skipEmpty){
-            if (stack.isEmpty()) {
+            if (stack.isEmpty() && index > 0) {
                 index--;
-                next();
+                previous();
             }
             else {
                 index--;

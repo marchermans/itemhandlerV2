@@ -1,4 +1,4 @@
-package loordgek.itemhandlerv2;
+package loordgek.itemhandlerv2.itemhandler;
 
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;

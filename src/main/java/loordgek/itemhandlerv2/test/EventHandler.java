@@ -1,11 +1,11 @@
 package loordgek.itemhandlerv2.test;
 
 import com.google.common.collect.Range;
-import loordgek.itemhandlerv2.CapbilityItemHandler;
-import loordgek.itemhandlerv2.IItemHandler;
-import loordgek.itemhandlerv2.InsertTransaction;
 import loordgek.itemhandlerv2.filter.ItemStackFilter;
 import loordgek.itemhandlerv2.filter.OreDictFilter;
+import loordgek.itemhandlerv2.itemhandler.CapbilityItemHandler;
+import loordgek.itemhandlerv2.itemhandler.IItemHandler;
+import loordgek.itemhandlerv2.itemhandler.InsertTransaction;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -25,8 +25,6 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.apache.logging.log4j.Logger;
-
-import java.util.OptionalInt;
 
 @Mod.EventBusSubscriber(modid = "testmod")
 public class EventHandler {
@@ -63,7 +61,7 @@ public class EventHandler {
 
             if (heldstack.getItem() == Items.STICK) {
                 event.setCanceled(true);
-                player.sendMessage(new TextComponentString(Float.toString(chestrinv.calcRedStoneFromInventory(100))));
+                player.sendMessage(new TextComponentString(Float.toString(chestrinv.calcRedStoneFromInventory(100, false))));
             }
 
             if (heldstack.getItem() == Items.BLAZE_ROD){
@@ -73,8 +71,9 @@ public class EventHandler {
                     itemHandler = Util.gethandler(world, hitpos.offset(facing), facing);
                     if (itemHandler != null) break;
                 }
+
                 if (itemHandler != null){
-                    InsertTransaction transaction = itemHandler.insert(chestrinv.extract(stack -> true, OptionalInt.empty(), 2, false), OptionalInt.empty(), false);
+                    InsertTransaction transaction = itemHandler.insert(Range.all(), itemHandler.extract(Range.all(), stack -> true, 10, false), false);
                     log.info(transaction.getInsertedStack());
                     log.info(transaction.getLeftoverStack());
                     ItemStackFilter.filterBuilder().withStackSize(Range.closed(10, 20)).build().and(new OreDictFilter("stairWood"));

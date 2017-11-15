@@ -1,6 +1,6 @@
 package loordgek.itemhandlerv2.test;
 
-import loordgek.itemhandlerv2.CapbilityItemHandler;
+import loordgek.itemhandlerv2.itemhandler.CapbilityItemHandler;
 import loordgek.itemhandlerv2.wrappers.InvWrapper;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.EnumFacing;

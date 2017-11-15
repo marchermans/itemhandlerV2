@@ -1,8 +1,8 @@
 package loordgek.itemhandlerv2.test;
 
-import loordgek.itemhandlerv2.IItemHandler;
-import loordgek.itemhandlerv2.ItemHandler;
-import loordgek.itemhandlerv2.Storage;
+import loordgek.itemhandlerv2.itemhandler.IItemHandler;
+import loordgek.itemhandlerv2.itemhandler.ItemHandler;
+import loordgek.itemhandlerv2.itemhandler.Storage;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
