@@ -3,6 +3,7 @@ package loordgek.itemhandlerv2.wrappers;
 import com.google.common.collect.Range;
 import loordgek.itemhandlerv2.itemhandler.IItemHandler;
 import loordgek.itemhandlerv2.itemhandler.InsertTransaction;
+import loordgek.itemhandlerv2.itemhandler.ItemHandlerHelperV2;
 import net.minecraft.item.ItemStack;
 
 import javax.annotation.Nonnull;
@@ -48,12 +49,22 @@ public class RangedWrapperTODO implements IItemHandler {
     @Nonnull
     @Override
     public InsertTransaction insert(Range<Integer> slotRange, ItemStack stack, boolean simulate) {
-        return compose.insert(Range.closed(min, max), stack, simulate);
+        if (ItemHandlerHelperV2.isRangeSlotLess(slotRange)){
+            return compose.insert(Range.closed(min, max), stack, simulate);
+        }
+        else {
+            ????
+        }
     }
 
     @Nonnull
     @Override
     public ItemStack extract(Range<Integer> slotRange, Predicate<ItemStack> filter, int amount, boolean simulate) {
-        return compose.extract(Range.closed(min, max), filter, amount, simulate);
+        if (ItemHandlerHelperV2.isRangeSlotLess(slotRange)){
+            return compose.extract(Range.closed(min, max), filter, amount, simulate);
+        }
+        else {
+            ???
+        }
     }
 }

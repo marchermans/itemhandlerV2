@@ -27,11 +27,14 @@ public interface IItemHandler{
      * @return A Integer in the range [0,scale] representing how "full" this inventory is.
      */
     //todo give me a better name
-    default float calcRedStoneFromInventory(int scale, boolean ignoreStackSize) {
+    default float calcRedStoneFromInventory(Range<Integer> scanRange, int scale, boolean ignoreStackSize) {
+        int minSlot = (scanRange.hasLowerBound() ? scanRange.lowerEndpoint() : 0);
+        int maxSlot = (scanRange.hasUpperBound() ? Math.min(scanRange.upperEndpoint(), size()) : size());
+
         if (ignoreStackSize){
             float proportion = 0.0F;
 
-            for (int i = 0; i < size(); i++) {
+            for (int i = minSlot; i < maxSlot; i++) {
                 if (!getStackInSlot(i).isEmpty()){
                     proportion++;
                 }
@@ -44,7 +47,7 @@ public interface IItemHandler{
         else {
             float proportion = 0.0F;
 
-            for (int j = 0; j < size(); ++j) {
+            for (int j = minSlot; j < maxSlot; ++j) {
                 ItemStack itemstack = getStackInSlot(j);
 
                 if (!itemstack.isEmpty()) {

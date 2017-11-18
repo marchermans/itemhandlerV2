@@ -61,7 +61,7 @@ public class CombinedInvWrapperTODO implements IItemHandler {
     }
 
     @Override
-    public float calcRedStoneFromInventory(int scale, boolean ignoreStackSize) {
+    public float calcRedStoneFromInventory(Range<Integer> scanRange, int scale, boolean ignoreStackSize) {
         if (ignoreStackSize){
             float proportion = 0.0F;
 
