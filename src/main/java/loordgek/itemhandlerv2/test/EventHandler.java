@@ -6,6 +6,8 @@ import loordgek.itemhandlerv2.filter.OreDictFilter;
 import loordgek.itemhandlerv2.itemhandler.CapbilityItemHandler;
 import loordgek.itemhandlerv2.itemhandler.IItemHandler;
 import loordgek.itemhandlerv2.itemhandler.InsertTransaction;
+import loordgek.itemhandlerv2.wrappers.CombinedInvWrapperTODO;
+import loordgek.itemhandlerv2.wrappers.RangedWrapper;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -58,10 +60,16 @@ public class EventHandler {
             Logger log = testmod.logger;
             IItemHandler playerinv = player.getCapability(CapbilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
             IItemHandler chestrinv = world.getTileEntity(hitpos).getCapability(CapbilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
+            IItemHandler chestrinv0to8 = new RangedWrapper(chestrinv, 0, 8);
+            IItemHandler chestrinv9to17 = new RangedWrapper(chestrinv, 9, 17);
+            IItemHandler chestrinv18to27 = new RangedWrapper(chestrinv, 18, 27);
+            IItemHandler combined = new CombinedInvWrapperTODO(chestrinv0to8, chestrinv9to17, chestrinv18to27);
 
             if (heldstack.getItem() == Items.STICK) {
                 event.setCanceled(true);
-                player.sendMessage(new TextComponentString(Float.toString(chestrinv.calcRedStoneFromInventory(100, false))));
+                player.sendMessage(new TextComponentString(Float.toString(chestrinv.calcRedStoneFromInventory(Range.all(),100, false))));
+                player.sendMessage(new TextComponentString(Float.toString(chestrinv.calcRedStoneFromInventory(Range.singleton(0),100, false))));
+                player.sendMessage(new TextComponentString(Float.toString(chestrinv0to8.calcRedStoneFromInventory(Range.all(),100, false))));
             }
 
             if (heldstack.getItem() == Items.BLAZE_ROD){

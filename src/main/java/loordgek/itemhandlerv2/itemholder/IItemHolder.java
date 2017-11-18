@@ -6,11 +6,11 @@ import javax.annotation.Nonnull;
 
 public interface IItemHolder {
 
-    default boolean isStackValidForSlot(@Nonnull ItemStack stack, int slot) {
+    default boolean isStackValidForSlot(@Nonnull ItemStack stack) {
         return true;
     }
 
-    default boolean canExtractStackFormSlot(@Nonnull ItemStack stack, int slot) {
+    default boolean canExtractStackFormSlot(@Nonnull ItemStack stack) {
         return true;
     }
     /**

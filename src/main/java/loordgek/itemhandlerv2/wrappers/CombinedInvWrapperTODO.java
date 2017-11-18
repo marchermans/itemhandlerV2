@@ -145,7 +145,14 @@ public class CombinedInvWrapperTODO implements IItemHandler {
             }
         }
         else {
-
+            int minSlot = (slotRange.hasLowerBound() ? slotRange.lowerEndpoint() : 0);
+            int maxSlot = (slotRange.hasUpperBound() ? Math.min(slotRange.upperEndpoint(), size()) : size());
+            int minIndex = getIndexForSlot(minSlot);
+            int maxIndex = getIndexForSlot(maxSlot);
+            for (int i = minIndex; i < maxIndex; i++) {
+                IItemHandler handler = getHandlerFromIndex(i);
+                handler.insert()
+            }
         }
         return new InsertTransaction(ItemStack.EMPTY, stack);
     }
