@@ -15,13 +15,13 @@ public class ItemHandler implements IItemHandler {
     }
 
     @Override
-    public boolean isStackValidForSlot(@Nonnull ItemStack stack, int slot) {
-        return holder.isStackValidForSlot(stack, slot);
+    public boolean isStackValid(@Nonnull ItemStack stack) {
+        return holder.isStackValidForSlot(stack);
     }
 
     @Override
-    public boolean canExtractStackFormSlot(@Nonnull ItemStack stack, int slot) {
-        return holder.canExtractStackFormSlot(stack, slot);
+    public boolean canExtractStack(@Nonnull ItemStack stack) {
+        return holder.canExtractStackFormSlot(stack);
     }
 
     @Override
@@ -46,7 +46,7 @@ public class ItemHandler implements IItemHandler {
         int minSlot = (slotRange.hasLowerBound() ? slotRange.lowerEndpoint() : 0);
         int maxSlot = (slotRange.hasUpperBound() ? Math.min(slotRange.upperEndpoint(), size()) : size());
         for (int i = minSlot; i < maxSlot; i++) {
-            if (isStackValidForSlot(stack, i)) {
+            if (isStackValid(stack)) {
                 ItemStack existing = getStackInSlot(i);
                 InsertTransaction transaction;
                 if (existing.isEmpty()){
@@ -57,7 +57,7 @@ public class ItemHandler implements IItemHandler {
                 if (!simulate){
                     holder.putStack(i, transaction.getInsertedStack(), false);
                 }
-                if (transaction.getInsertedStack().isEmpty())
+                if (!transaction.getInsertedStack().isEmpty())
                     return transaction;
             }
         }
@@ -71,7 +71,7 @@ public class ItemHandler implements IItemHandler {
         int maxSlot = (slotRange.hasUpperBound() ? Math.min(slotRange.upperEndpoint(), size()) : size());
         for (int i = minSlot; i < maxSlot; i++) {
             ItemStack stack = getStackInSlot(i);
-            if (!stack.isEmpty() && canExtractStackFormSlot(stack, i) && filter.test(stack)) {
+            if (!stack.isEmpty() && canExtractStack(stack) && filter.test(stack)) {
                 ItemStack extracted = holder.decreaseStack(i, amount, simulate);
                 if (!extracted.isEmpty())
                     return extracted;
