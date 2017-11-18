@@ -9,12 +9,12 @@ import net.minecraft.item.ItemStack;
 import javax.annotation.Nonnull;
 import java.util.function.Predicate;
 
-public class RangedWrapperTODO implements IItemHandler {
+public class RangedWrapper implements IItemHandler {
     private final IItemHandler compose;
     private final int min;
     private final int max;
 
-    public RangedWrapperTODO(IItemHandler compose, int min, int max) {
+    public RangedWrapper(IItemHandler compose, int min, int max) {
         this.compose = compose;
         this.min = min;
         this.max = max;
@@ -53,7 +53,9 @@ public class RangedWrapperTODO implements IItemHandler {
             return compose.insert(Range.closed(min, max), stack, simulate);
         }
         else {
-            ????
+            int minSlot = (slotRange.hasLowerBound() ? slotRange.lowerEndpoint() : 0);
+            int maxSlot = (slotRange.hasUpperBound() ? Math.min(slotRange.upperEndpoint(), size()) : size());
+            return compose.insert(Range.closed(Math.max(min, minSlot), Math.min(max, maxSlot)), stack, simulate);
         }
     }
 
@@ -64,7 +66,9 @@ public class RangedWrapperTODO implements IItemHandler {
             return compose.extract(Range.closed(min, max), filter, amount, simulate);
         }
         else {
-            ???
+            int minSlot = (slotRange.hasLowerBound() ? slotRange.lowerEndpoint() : 0);
+            int maxSlot = (slotRange.hasUpperBound() ? Math.min(slotRange.upperEndpoint(), size()) : size());
+            return compose.extract(Range.closed(Math.max(min, minSlot), Math.min(max, maxSlot)), filter, amount, simulate);
         }
     }
 }
