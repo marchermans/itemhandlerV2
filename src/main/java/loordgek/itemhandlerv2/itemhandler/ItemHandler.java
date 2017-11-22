@@ -15,16 +15,6 @@ public class ItemHandler implements IItemHandler {
     }
 
     @Override
-    public boolean isStackValid(@Nonnull ItemStack stack) {
-        return holder.isStackValidForSlot(stack);
-    }
-
-    @Override
-    public boolean canExtractStack(@Nonnull ItemStack stack) {
-        return holder.canExtractStackFormSlot(stack);
-    }
-
-    @Override
     public int size() {
         return holder.getSlotCount();
     }

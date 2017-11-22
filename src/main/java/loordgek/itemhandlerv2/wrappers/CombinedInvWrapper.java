@@ -9,12 +9,12 @@ import net.minecraft.item.ItemStack;
 import javax.annotation.Nonnull;
 import java.util.function.Predicate;
 
-public class CombinedInvWrapperTODO implements IItemHandler {
+public class CombinedInvWrapper implements IItemHandler {
     protected final IItemHandler[] handlers;
     protected final int[] baseIndex; // index-offsets of the different handlers
     protected final int slotCount; // number of total slots
 
-    public CombinedInvWrapperTODO(IItemHandler... handlers) {
+    public CombinedInvWrapper(IItemHandler... handlers) {
         this.handlers = handlers;
         this.baseIndex = new int[handlers.length];
         int index = 0;
@@ -144,14 +144,36 @@ public class CombinedInvWrapperTODO implements IItemHandler {
                     return transaction;
             }
         }
+        else if (ItemHandlerHelperV2.isRangeSingleton(slotRange)){
+            int slot = slotRange.lowerEndpoint();
+            int index = getIndexForSlot(slot);
+            IItemHandler handler = getHandlerFromIndex(index);
+            return handler.insert(Range.singleton(getSlotFromIndex(slot, index)), stack, simulate);
+        }
         else {
             int minSlot = (slotRange.hasLowerBound() ? slotRange.lowerEndpoint() : 0);
             int maxSlot = (slotRange.hasUpperBound() ? Math.min(slotRange.upperEndpoint(), size()) : size());
             int minIndex = getIndexForSlot(minSlot);
             int maxIndex = getIndexForSlot(maxSlot);
+            int currentMinSlot = minSlot;
             for (int i = minIndex; i < maxIndex; i++) {
+
                 IItemHandler handler = getHandlerFromIndex(i);
-                handler.insert()
+                if (maxSlot >= handler.size() && currentMinSlot == 0){
+                    InsertTransaction Inserted = handler.insert(Range.all(), stack, simulate);
+                    if (!Inserted.getInsertedStack().isEmpty()){
+                        return Inserted;
+                    }
+                    else currentMinSlot -= handler.size();
+                }
+                else {
+                    int currentMaxSlot = Math.min(handler.size(), minSlot);
+                    InsertTransaction Inserted = handler.insert(Range.closed(currentMinSlot, currentMaxSlot), stack, simulate);
+                    if (!Inserted.getInsertedStack().isEmpty()){
+                        return Inserted;
+                    }
+                    else currentMinSlot -= (currentMaxSlot - currentMinSlot);
+                }
             }
         }
         return new InsertTransaction(ItemStack.EMPTY, stack);
@@ -167,14 +189,36 @@ public class CombinedInvWrapperTODO implements IItemHandler {
                     return extract;
             }
         }
+        else if (ItemHandlerHelperV2.isRangeSingleton(slotRange)){
+            int slot = slotRange.lowerEndpoint();
+            int index = getIndexForSlot(slot);
+            IItemHandler handler = getHandlerFromIndex(index);
+            return handler.extract(Range.singleton(getSlotFromIndex(slot, index)), filter, amount, simulate);
+        }
         else {
             int minSlot = (slotRange.hasLowerBound() ? slotRange.lowerEndpoint() : 0);
             int maxSlot = (slotRange.hasUpperBound() ? Math.min(slotRange.upperEndpoint(), size()) : size());
             int minIndex = getIndexForSlot(minSlot);
             int maxIndex = getIndexForSlot(maxSlot);
+            int currentMinSlot = minSlot;
             for (int i = minIndex; i < maxIndex; i++) {
+
                 IItemHandler handler = getHandlerFromIndex(i);
-                handler.extract()
+                if (maxSlot >= handler.size() && currentMinSlot == 0){
+                   ItemStack extracted = handler.extract(Range.all(), filter, amount, simulate);
+                   if (!extracted.isEmpty()){
+                       return extracted;
+                   }
+                   else currentMinSlot -= handler.size();
+                }
+                else {
+                    int currentMaxSlot = Math.min(handler.size(), minSlot);
+                    ItemStack extracted = handler.extract(Range.closed(currentMinSlot, currentMaxSlot), filter, amount, simulate);
+                    if (!extracted.isEmpty()){
+                        return extracted;
+                    }
+                    else currentMinSlot -= (currentMaxSlot - currentMinSlot);
+                }
             }
         }
         return ItemStack.EMPTY;

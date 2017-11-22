@@ -11,11 +11,11 @@ public interface IItemHandlerIterator extends Iterator<ItemStack> {
 
     boolean hasPrevious();
 
-    int currentindex();
+    int currentIndex();
 
-    int nextindex();
+    int nextIndex();
 
-    int previousindex();
+    int previousIndex();
 
     @Nonnull
     ItemStack next();

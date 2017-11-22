@@ -19,7 +19,7 @@ public interface IItemHandler{
         return true;
     }
 
-    default IItemHandlerIterator itemhandlerIterator(boolean skipEmpty) {
+    default IItemHandlerIterator itemHandlerIterator(boolean skipEmpty) {
         return new ItemHandlerIterator(this, skipEmpty);
     }
 

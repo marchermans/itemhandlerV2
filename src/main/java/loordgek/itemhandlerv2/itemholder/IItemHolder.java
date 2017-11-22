@@ -6,7 +6,7 @@ import javax.annotation.Nonnull;
 
 public interface IItemHolder {
 
-    default boolean isStackValidForSlot(@Nonnull ItemStack stack) {
+    default boolean isStackValidForSlot(@Nonnull ItemStack stack, int slot) {
         return true;
     }
 

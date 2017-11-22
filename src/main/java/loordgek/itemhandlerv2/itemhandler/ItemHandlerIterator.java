@@ -29,19 +29,19 @@ public class ItemHandlerIterator implements IItemHandlerIterator {
     }
 
     @Override
-    public int currentindex(){
+    public int currentIndex(){
         return index;
     }
 
     @Override
-    public int nextindex(){
+    public int nextIndex(){
         if (index == size())
             throw new NullPointerException();
         return index++;
     }
 
     @Override
-    public int previousindex(){
+    public int previousIndex(){
         if (index == 0)
             throw new NullPointerException();
         return index--;

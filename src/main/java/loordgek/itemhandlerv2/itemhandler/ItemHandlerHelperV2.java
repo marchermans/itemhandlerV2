@@ -7,6 +7,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.ItemHandlerHelper;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 
 public class ItemHandlerHelperV2 {
     public static IInventory emptyInventory = new InventoryBasic("[Null]", true, 0);
@@ -29,19 +30,11 @@ public class ItemHandlerHelperV2 {
         return split(stack, freeSpace);
     }
 
-    public static InsertTransaction insertIntoTargetStack(ItemStack stack, IItemHandler itemHandler, int slot) {
-        if (itemHandler.isStackValid(stack)) {
-            ItemStack existing = itemHandler.getStackInSlot(slot);
-
-            if (existing.isEmpty()) {
-                return split(stack, itemHandler.getFreeSpaceForSlot(slot));
-
-            } else return insertIntoExistingStack(existing, stack, itemHandler.getFreeSpaceForSlot(slot));
-        }
-        return new InsertTransaction(ItemStack.EMPTY, stack);
-    }
-
     public static boolean isRangeSlotLess(Range<Integer> range){
         return !range.hasLowerBound() && range.hasUpperBound();
+    }
+
+    public static boolean isRangeSingleton(Range<Integer> range){
+        return range.hasLowerBound() && range.hasUpperBound() && Objects.equals(range.lowerEndpoint(), range.upperEndpoint());
     }
 }

@@ -10,8 +10,6 @@ public class InvWrapper extends IInvWrapperBase {
         this.inventory = inventory;
     }
 
-
-
     protected IInventory getInventory() {
         return inventory;
     }

@@ -24,4 +24,11 @@ public class InsertTransaction {
     public ItemStack getLeftoverStack() {
         return leftoverStack;
     }
+
+    public static enum TRANFERRESULT{
+        FAIL,
+        SUCSES,
+        FULL,
+        NOTVALID,
+    }
 }
