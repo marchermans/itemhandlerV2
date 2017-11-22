@@ -212,7 +212,7 @@ public class CombinedInvWrapper implements IItemHandler {
                    else currentMinSlot -= handler.size();
                 }
                 else {
-                    int currentMaxSlot = Math.min(handler.size(), minSlot);
+                    int currentMaxSlot = Math.min(handler.size(), maxSlot);
                     ItemStack extracted = handler.extract(Range.closed(currentMinSlot, currentMaxSlot), filter, amount, simulate);
                     if (!extracted.isEmpty()){
                         return extracted;
