@@ -11,6 +11,8 @@ import net.minecraftforge.common.capabilities.Capability;
 import java.util.function.Predicate;
 
 public class ItemStackFilter implements Predicate<ItemStack> {
+    // only used to check the capability NBT
+    private final ItemStack stack;
     private final Item item;
     private final Range<Integer> metadata;
     private final NBTTagCompound nbtTag;
@@ -18,6 +20,7 @@ public class ItemStackFilter implements Predicate<ItemStack> {
     private final Range<Integer> stackSize;
     private final boolean matchNBT;
     private final boolean matchItem;
+    private final boolean matchCapNBTData;
     private final boolean matchMeta;
     private final boolean matchCap;
     private final boolean matchStackSize;
@@ -25,8 +28,9 @@ public class ItemStackFilter implements Predicate<ItemStack> {
 
     private final boolean inverted;
 
-    public ItemStackFilter(Item item, Range<Integer> metadata, NBTTagCompound nbtTag, Table<Capability<?>, EnumFacing, Predicate<?>> capabilityFilters,
-                           Range<Integer> stackSize, boolean matchNBT, boolean matchItem, boolean matchMeta, boolean matchCap, boolean matchStackSize, boolean inverted) {
+    public ItemStackFilter(ItemStack stack, Item item, Range<Integer> metadata, NBTTagCompound nbtTag, Table<Capability<?>, EnumFacing, Predicate<?>> capabilityFilters,
+                           Range<Integer> stackSize, boolean matchNBT, boolean matchItem, boolean matchStack, boolean matchMeta, boolean matchCap, boolean matchStackSize, boolean inverted) {
+        this.stack = stack;
         this.item = item;
         this.metadata = metadata;
         this.nbtTag = nbtTag;
@@ -34,6 +38,7 @@ public class ItemStackFilter implements Predicate<ItemStack> {
         this.stackSize = stackSize;
         this.matchNBT = matchNBT;
         this.matchItem = matchItem;
+        this.matchCapNBTData = matchStack;
         this.matchMeta = matchMeta;
         this.matchCap = matchCap;
         this.matchStackSize = matchStackSize;
@@ -82,6 +87,10 @@ public class ItemStackFilter implements Predicate<ItemStack> {
             }
             return (tag == null || nbtTag.equals(tag)) != inverted;
         }
+        if (matchCapNBTData){
+            if (!this.stack.areCapsCompatible(stack))
+                return inverted;
+        }
         if (matchCap) {
             return testCapability(stack);
         }
@@ -94,6 +103,7 @@ public class ItemStackFilter implements Predicate<ItemStack> {
 
     public static class Builder {
         private Range<Integer> stackSize = null;
+        private ItemStack stack = ItemStack.EMPTY;
         private Item item = null;
         private Range<Integer> metadata = null;
         private NBTTagCompound nbtTag = null;
@@ -121,10 +131,9 @@ public class ItemStackFilter implements Predicate<ItemStack> {
             return this;
         }
 
-        public Builder withItemStack(ItemStack stack) {
-            this.nbtTag = stack.getTagCompound();
-            this.metadata = Range.singleton(stack.getMetadata());
-            return withItem(stack.getItem());
+        public Builder withCapNBTData(ItemStack stack) {
+            this.stack = stack;
+            return this;
         }
 
         public Builder withItem(Item item) {
@@ -138,7 +147,7 @@ public class ItemStackFilter implements Predicate<ItemStack> {
         }
 
         public ItemStackFilter build() {
-            return new ItemStackFilter(item, metadata, nbtTag, capabilityFilters, stackSize, nbtTag != null, item != null, metadata != null, capabilityFilters != null, stackSize != null, inverted);
+            return new ItemStackFilter(stack, item, metadata, nbtTag, capabilityFilters, stackSize, nbtTag != null, item != null, !stack.isEmpty(), metadata != null, capabilityFilters != null, stackSize != null, inverted);
         }
     }
 }
