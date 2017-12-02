@@ -7,13 +7,17 @@ import javax.annotation.Nonnull;
 import java.util.function.Predicate;
 
 public class EmptyHandler implements IItemHandler {
+
+    public static final EmptyHandler INSTANCE = new EmptyHandler();
+
+    private EmptyHandler (){}
     @Override
     public int size() {
         return 0;
     }
 
     @Override
-    public int getSlotLimit() {
+    public int getSlotLimit(int slot) {
         return 0;
     }
 
@@ -27,9 +31,10 @@ public class EmptyHandler implements IItemHandler {
         return false;
     }
 
+    @Nonnull
     @Override
-    public IItemHandlerIterator itemHandlerIterator(boolean skipEmpty) {
-        return new EmptyItemHandlerItr();
+    public IItemHandlerIterator itemHandlerIterator() {
+        return EmptyItemHandlerItr.INSTANCE;
     }
 
     @Override

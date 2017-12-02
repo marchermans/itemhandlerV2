@@ -61,41 +61,6 @@ public class CombinedInvWrapper implements IItemHandler {
     }
 
     @Override
-    public float calcRedStoneFromInventory(Range<Integer> scanRange, int scale, boolean ignoreStackSize) {
-        if (ignoreStackSize){
-            float proportion = 0.0F;
-
-            for (int i = 0; i < size(); i++) {
-                if (!getStackInSlot(i).isEmpty()){
-                    proportion++;
-                }
-            }
-
-            proportion = proportion / (float) size();
-
-            return (proportion * scale);
-        }
-        else {
-            float proportion = 0.0F;
-
-            for (int j = 0; j < size(); ++j) {
-                int index = getIndexForSlot(j);
-                IItemHandler handler = getHandlerFromIndex(index);
-                int slot = getSlotFromIndex(j, index);
-                ItemStack itemstack = handler.getStackInSlot(slot);
-
-                if (!itemstack.isEmpty()) {
-                    proportion += (float) itemstack.getCount() / (float) handler.getStackLimit(itemstack);
-                }
-            }
-
-            proportion = proportion / (float) size();
-
-            return (proportion * scale);
-        }
-    }
-
-    @Override
     public boolean isStackValid(@Nonnull ItemStack stack) {
         for (IItemHandler handler : handlers){
             if (handler.isStackValid(stack)){
@@ -121,8 +86,11 @@ public class CombinedInvWrapper implements IItemHandler {
     }
 
     @Override
-    public int getSlotLimit() {
-        return 0;
+    public int getSlotLimit(int slot) {
+        int index = getIndexForSlot(slot);
+        IItemHandler handler = getHandlerFromIndex(index);
+        int slotindex = getSlotFromIndex(slot, index);
+        return handler.getSlotLimit(slotindex);
     }
 
     @Nonnull
@@ -167,7 +135,7 @@ public class CombinedInvWrapper implements IItemHandler {
                     else currentMinSlot -= handler.size();
                 }
                 else {
-                    int currentMaxSlot = Math.min(handler.size(), minSlot);
+                    int currentMaxSlot = Math.min(handler.size(), maxSlot);
                     InsertTransaction Inserted = handler.insert(Range.closed(currentMinSlot, currentMaxSlot), stack, simulate);
                     if (!Inserted.getInsertedStack().isEmpty()){
                         return Inserted;

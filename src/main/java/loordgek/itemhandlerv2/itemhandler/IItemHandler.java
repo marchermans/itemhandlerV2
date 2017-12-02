@@ -2,6 +2,7 @@ package loordgek.itemhandlerv2.itemhandler;
 
 
 import com.google.common.collect.Range;
+import loordgek.itemhandlerv2.filter.ItemStackFilter;
 import net.minecraft.item.ItemStack;
 
 import javax.annotation.Nonnull;
@@ -11,16 +12,17 @@ public interface IItemHandler{
 
     int size();
 
-    default boolean isStackValid(@Nonnull ItemStack stack) {
+    default boolean isStackValid(ItemStack stack) {
         return true;
     }
 
-    default boolean canExtractStack(@Nonnull ItemStack stack) {
+    default boolean canExtractStack(ItemStack stack) {
         return true;
     }
 
-    default IItemHandlerIterator itemHandlerIterator(boolean skipEmpty) {
-        return new ItemHandlerIterator(this, skipEmpty);
+    @Nonnull
+    default IItemHandlerIterator itemHandlerIterator() {
+        return new ItemHandlerIterator(this);
     }
 
     /**
@@ -32,26 +34,42 @@ public interface IItemHandler{
         int maxSlot = (scanRange.hasUpperBound() ? Math.min(scanRange.upperEndpoint(), size()) : size());
 
         if (ignoreStackSize){
-            float proportion = 0.0F;
-
-            for (int i = minSlot; i < maxSlot; i++) {
-                if (!getStackInSlot(i).isEmpty()){
-                    proportion++;
-                }
+            if (ItemHandlerHelperV2.isRangeSingleton(scanRange)){
+                return getStackInSlot(scanRange.lowerEndpoint()).isEmpty() ? scale : 0;
             }
+            else {
+                float proportion = 0.0F;
 
-            proportion = proportion / (float) size();
+                for (int i = minSlot; i < maxSlot; i++) {
+                    if (!getStackInSlot(i).isEmpty()){
+                        proportion++;
+                    }
+                }
 
-            return (proportion * scale);
+                proportion = proportion / (float) size();
+
+                return (proportion * scale);
+            }
         }
         else {
+            if (ItemHandlerHelperV2.isRangeSingleton(scanRange)){
+                float proportion = 0.0F;
+
+                ItemStack itemstack = getStackInSlot(scanRange.lowerEndpoint());
+
+                if (!itemstack.isEmpty()) {
+                    proportion += (float) itemstack.getCount() / (float) getStackLimit(itemstack, scanRange.lowerEndpoint());
+                }
+
+                return proportion * scale;
+            }
             float proportion = 0.0F;
 
             for (int j = minSlot; j < maxSlot; ++j) {
                 ItemStack itemstack = getStackInSlot(j);
 
                 if (!itemstack.isEmpty()) {
-                    proportion += (float) itemstack.getCount() / (float) getStackLimit(itemstack);
+                    proportion += (float) itemstack.getCount() / (float) getStackLimit(itemstack, j);
                 }
             }
 
@@ -61,10 +79,10 @@ public interface IItemHandler{
         }
     }
 
-    int getSlotLimit();
+    int getSlotLimit(int slot);
 
-    default int getStackLimit(ItemStack stack) {
-        return Math.min(stack.getMaxStackSize(), getSlotLimit());
+    default int getStackLimit(ItemStack stack, int slot) {
+        return Math.min(stack.getMaxStackSize(), getSlotLimit(slot));
     }
 
     default int getFreeSpaceForSlot(int slot){
@@ -73,9 +91,9 @@ public interface IItemHandler{
             if (!existing.isStackable()){
                 return 0;
             }
-            else return getSlotLimit() - existing.getCount();
+            else return getSlotLimit(slot) - existing.getCount();
         }
-        return getSlotLimit();
+        return getSlotLimit(slot);
     }
 
     @Nonnull
@@ -99,4 +117,18 @@ public interface IItemHandler{
      */
     @Nonnull
     ItemStack extract(Range<Integer> slotRange, Predicate<ItemStack> filter, int amount, boolean simulate);
+
+    default ItemStack extractStack(Range<Integer> slotRange, @Nonnull ItemStack matchStack, boolean matchNBT, boolean matchMeta, int amount, boolean simulate){
+        if (matchStack.isEmpty()) return ItemStack.EMPTY;
+        ItemStackFilter.Builder filterBuilder = ItemStackFilter.filterBuilder();
+        filterBuilder.withItem(matchStack.getItem());
+        if (matchNBT) {
+            filterBuilder.withNbtTag(matchStack.getTagCompound());
+            filterBuilder.withCapNBTData(matchStack);
+        }
+        if (matchMeta)
+            filterBuilder.withMetadata(Range.singleton(matchStack.getMetadata()));
+
+        return extract(slotRange, filterBuilder.build(), amount, simulate);
+    }
 }

@@ -36,8 +36,8 @@ public class RangedWrapper implements IItemHandler {
     }
 
     @Override
-    public int getSlotLimit() {
-        return compose.getSlotLimit();
+    public int getSlotLimit(int slot) {
+        return compose.getSlotLimit(slot + min);
     }
 
     @Nonnull
@@ -55,7 +55,7 @@ public class RangedWrapper implements IItemHandler {
         else {
             int minSlot = (slotRange.hasLowerBound() ? slotRange.lowerEndpoint() : 0);
             int maxSlot = (slotRange.hasUpperBound() ? Math.min(slotRange.upperEndpoint(), size()) : size());
-            return compose.insert(Range.closed(Math.max(min, minSlot), Math.min(max, maxSlot)), stack, simulate);
+            return compose.insert(Range.closed(Math.max(min, (minSlot + min)), Math.min(max, (maxSlot + min))), stack, simulate);
         }
     }
 
@@ -68,7 +68,7 @@ public class RangedWrapper implements IItemHandler {
         else {
             int minSlot = (slotRange.hasLowerBound() ? slotRange.lowerEndpoint() : 0);
             int maxSlot = (slotRange.hasUpperBound() ? Math.min(slotRange.upperEndpoint(), size()) : size());
-            return compose.extract(Range.closed(Math.max(min, minSlot), Math.min(max, maxSlot)), filter, amount, simulate);
+            return compose.extract(Range.closed(Math.max(min, (minSlot + min)), Math.min(max, (maxSlot + min))), filter, amount, simulate);
         }
     }
 }

@@ -9,7 +9,7 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import org.apache.logging.log4j.Logger;
 
 @Mod(modid = "testmod")
-public class testmod {
+public class TestMod {
 
     public static Logger logger;
 

@@ -5,6 +5,10 @@ import net.minecraft.item.ItemStack;
 import javax.annotation.Nonnull;
 
 public class EmptyItemHandlerItr implements IItemHandlerIterator {
+
+    public static final EmptyItemHandlerItr INSTANCE = new EmptyItemHandlerItr();
+
+    private EmptyItemHandlerItr(){}
     @Override
     public boolean hasNext() {
         return false;

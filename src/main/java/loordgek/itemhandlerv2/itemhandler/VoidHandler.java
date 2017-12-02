@@ -8,13 +8,17 @@ import java.util.function.Predicate;
 
 public class VoidHandler implements IItemHandler {
 
+    public static final VoidHandler INSTANCE = new VoidHandler();
+
+    private VoidHandler(){}
+
     @Override
     public int size() {
         return 100;
     }
 
     @Override
-    public int getSlotLimit() {
+    public int getSlotLimit(int slot) {
         return Integer.MAX_VALUE;
     }
 
@@ -23,9 +27,10 @@ public class VoidHandler implements IItemHandler {
         return false;
     }
 
+    @Nonnull
     @Override
-    public IItemHandlerIterator itemHandlerIterator(boolean skipEmpty) {
-        return new EmptyItemHandlerItr();
+    public IItemHandlerIterator itemHandlerIterator() {
+        return EmptyItemHandlerItr.INSTANCE;
     }
 
     @Override

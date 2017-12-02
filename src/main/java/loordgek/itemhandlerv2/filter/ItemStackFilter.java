@@ -10,7 +10,7 @@ import net.minecraftforge.common.capabilities.Capability;
 
 import java.util.function.Predicate;
 
-public class ItemStackFilter implements Predicate<ItemStack> {
+public class ItemStackFilter implements IStackFilter {
     // only used to check the capability NBT
     private final ItemStack stack;
     private final Item item;
@@ -24,8 +24,6 @@ public class ItemStackFilter implements Predicate<ItemStack> {
     private final boolean matchMeta;
     private final boolean matchCap;
     private final boolean matchStackSize;
-
-
     private final boolean inverted;
 
     public ItemStackFilter(ItemStack stack, Item item, Range<Integer> metadata, NBTTagCompound nbtTag, Table<Capability<?>, EnumFacing, Predicate<?>> capabilityFilters,

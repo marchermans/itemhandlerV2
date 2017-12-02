@@ -32,8 +32,8 @@ public class ISidedInvWrapper extends IInvWrapperBase {
     }
 
     @Override
-    public int getSlotLimit() {
-        return inventory.getInventoryStackLimit();
+    public int getSlotLimit(int slot) {
+        return getInventory().getInventoryStackLimit();
     }
 
     @Nonnull

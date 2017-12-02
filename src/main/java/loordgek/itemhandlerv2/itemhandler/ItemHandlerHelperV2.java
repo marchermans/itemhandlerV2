@@ -1,6 +1,7 @@
 package loordgek.itemhandlerv2.itemhandler;
 
 import com.google.common.collect.Range;
+import loordgek.itemhandlerv2.test.TestMod;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryBasic;
 import net.minecraft.item.ItemStack;
@@ -31,7 +32,9 @@ public class ItemHandlerHelperV2 {
     }
 
     public static boolean isRangeSlotLess(Range<Integer> range){
-        return !range.hasLowerBound() && range.hasUpperBound();
+        TestMod.logger.info(range.hasLowerBound());
+        TestMod.logger.info(range.hasUpperBound());
+        return !range.hasLowerBound() && !range.hasUpperBound();
     }
 
     public static boolean isRangeSingleton(Range<Integer> range){

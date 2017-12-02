@@ -1,12 +1,11 @@
 package loordgek.itemhandlerv2.filter;
 
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.NonNullList;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.ArrayUtils;
 
-import java.util.function.Predicate;
-
-public class OreDictFilter implements Predicate<ItemStack>{
+public class OreDictFilter implements IStackFilter{
     private final String oreName;
 
     public OreDictFilter(String oreName) {
@@ -16,5 +15,10 @@ public class OreDictFilter implements Predicate<ItemStack>{
     @Override
     public boolean test(ItemStack stack) {
         return !stack.isEmpty() && ArrayUtils.contains(OreDictionary.getOreIDs(stack), OreDictionary.getOreID(oreName));
+    }
+
+    @Override
+    public NonNullList<ItemStack> getExamples() {
+       return OreDictionary.getOres(oreName);
     }
 }
