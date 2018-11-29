@@ -4,9 +4,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 
-import java.util.function.Predicate;
-
-public class FluidFilter implements Predicate<ItemStack> {
+public class FluidFilter implements IStackFilter {
     private final FluidStack fluidStackToTest;
     private final MatchingStrategy matchingStrategy;
 
