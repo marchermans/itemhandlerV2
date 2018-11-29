@@ -62,13 +62,12 @@ public final class TransactionResult {
 
         /**
          * When inserting, the stack is not can not be inserted.
-         * When extracting, this is the stack that is left in the slot.
+         * When extracting, the stack can not be extracted.
          */
         INVALID,
 
         /**
-         * An operation was cancelled by a third party (eg. an inventory event
-         * was cancelled). The condition of the inventory is unchanged.
+         * the transaction was cancelled by a third party
          */
         CANCELLED;
 
