@@ -8,8 +8,6 @@ import javax.annotation.Nonnull;
 @FunctionalInterface
 public interface IItemHandlerObserver {
 
-
-
     void onInventoryChanged(IItemHandler handler, int slot, @Nonnull ItemStack oldStack, @Nonnull ItemStack newStack, Flow flow);
 
     enum Flow{

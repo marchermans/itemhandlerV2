@@ -4,17 +4,7 @@ import net.minecraft.item.ItemStack;
 
 import javax.annotation.Nonnull;
 
-public final class TransactionResult {
-    private final ItemStack result;
-    private final ItemStack other;
-    private final Type type;
-
-    public TransactionResult(ItemStack result, ItemStack other, Type type) {
-        this.result = result;
-        this.other = other;
-        this.type = type;
-
-    }
+public interface ITransaction {
 
     /**
      * Gets the resulting {@link ItemStack} of this transaction.
@@ -22,10 +12,7 @@ public final class TransactionResult {
      * When inserting, this is the leftover stack.<br/>
      * When extracting, this is the stack that was extracted.
      */
-    @Nonnull
-    ItemStack getResult() {
-        return result;
-    }
+    ItemStack getResult();
 
     /**
      * Gets the secondary resulting {@link ItemStack} of this transaction.
@@ -33,18 +20,32 @@ public final class TransactionResult {
      * When inserting, this is the inserted stack.<br/>
      * When extracting, this is the stack that is left in the slot.
      */
-    @Nonnull
-    ItemStack getOther() {
-        return other;
-    }
+    ItemStack getOther();
+
+    /**
+     * Cancels this transaction and invalidates it and all the ones issued after it.<br/>
+     * If another transaction's cancellation has invalidated this one, an {@link IllegalStateException} will be thrown.
+     */
+    ItemStack cancel();
+
+    /**
+     * Confirms this transaction and invalidates it.<br/>
+     * If another transaction was issued prior to this one and has not been completed yet, an {@link IllegalStateException} will be
+     * thrown.<br/>
+     * If another transaction's cancellation has invalidated this one, an {@link IllegalStateException} will be thrown.
+     */
+    ItemStack confirm();
+
+    /**
+     * Checks the validity of this transaction.
+     */
+    boolean isValid();
 
     /**
      * the Transaction type
      */
     @Nonnull
-    Type getType() {
-        return type;
-    }
+    Type getType();
 
     enum Type {
 
@@ -55,21 +56,26 @@ public final class TransactionResult {
         SUCCESS,
 
         /**
-         * When inserting, the inventory has no room the item.
+         * When inserting, the inventory is full.
          * When extracting, the inventory is empty.
          */
         FAILURE,
 
         /**
          * When inserting, the stack is not can not be inserted.
-         * When extracting, the stack can not be extracted.
+         * When extracting, the stack can not be extracted or the filter did not match.
          */
         INVALID,
 
         /**
          * the transaction was cancelled by a third party
          */
-        CANCELLED;
+        CANCELLED,
+
+        /**
+         * something else :)
+         */
+        UNDEFINED;
 
         boolean isSuccess(){
             return this == SUCCESS;

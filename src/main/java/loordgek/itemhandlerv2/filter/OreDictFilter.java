@@ -5,7 +5,7 @@ import net.minecraft.util.NonNullList;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.ArrayUtils;
 
-public class OreDictFilter implements IStackFilter{
+public class OreDictFilter implements IStackFilter {
     private final String oreName;
 
     public OreDictFilter(String oreName) {
