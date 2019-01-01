@@ -7,6 +7,8 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 
 import javax.annotation.Nonnull;
+import java.util.Collection;
+import java.util.Collections;
 
 public class SlotItemHandler extends Slot {
     private static IInventory emptyInventory = new InventoryBasic("[Null]", true, 0);
