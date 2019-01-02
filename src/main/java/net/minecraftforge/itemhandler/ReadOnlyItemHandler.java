@@ -4,6 +4,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.container.ReadOnlyContainer;
 import net.minecraftforge.itemhandler.api.IReadOnlyItemHandler;
 
+import java.util.Collection;
+
 /**
  * The default implementation of {@link IReadOnlyItemHandler} interface.
  *
@@ -17,12 +19,13 @@ public class ReadOnlyItemHandler extends ReadOnlyContainer<ItemStack> implements
         super(size);
     }
 
-    public ReadOnlyItemHandler(ItemStack... container) {
-        super(container);
+    public ReadOnlyItemHandler(ItemStack... iterable) {
+        super(iterable);
     }
 
-    protected ReadOnlyItemHandler(Object... container) {
-        super(container);
+    public ReadOnlyItemHandler(Collection<ItemStack> iterable)
+    {
+        super(iterable);
     }
 
     @Override

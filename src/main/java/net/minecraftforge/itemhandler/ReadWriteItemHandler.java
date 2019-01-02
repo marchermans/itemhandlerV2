@@ -1,14 +1,15 @@
 package net.minecraftforge.itemhandler;
 
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.container.AbstractReadWriteContainer;
 import net.minecraftforge.container.ContainerTransactionOperationResult;
+import net.minecraftforge.container.ReadOnlyContainer;
 import net.minecraftforge.container.api.*;
 import net.minecraftforge.itemhandler.api.IItemHandlerTransaction;
 import net.minecraftforge.itemhandler.api.IReadWriteItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
+import net.minecraftforge.util.ListWithFixedSize;
 
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.function.Function;
 
 /**
@@ -18,12 +19,17 @@ import java.util.function.Function;
  * If a different behaviour is required during transactions, extend {@link ItemHandlerTransaction}
  * and pass a {@link Function} to create your transaction implementation when required.
  */
-public class ReadWriteItemHandler extends AbstractReadWriteContainer<ItemStack> implements IReadWriteItemHandler {
+public class ReadWriteItemHandler extends ReadOnlyItemHandler implements IReadWriteItemHandler {
 
     /**
      * The callback function that supplies the handler with the relevant transactions.
      */
     private final Function<ReadWriteItemHandler, ItemHandlerTransaction> transactionSupplier;
+
+    /**
+     * The current transaction.
+     */
+    private IContainerTransaction<ItemStack> activeTransaction;
 
     /**
      * Creates a default handler with the given size.
@@ -40,15 +46,26 @@ public class ReadWriteItemHandler extends AbstractReadWriteContainer<ItemStack> 
      * Creates a default handler with the given array.
      * All slots are modifyable.
      *
-     * @param container The container.
+     * @param iterable The iterable.
      */
-    public ReadWriteItemHandler(ItemStack... container) {
-        super(container);
+    public ReadWriteItemHandler(ItemStack... iterable) {
+        super(iterable);
         this.transactionSupplier = ItemHandlerTransaction::new;
     }
 
     /**
-     * Creates a none default handler with the given array.
+     * Creates a default handler with the collection as delegate.
+     * All slots are modifyable.
+     *
+     * @param iterable The iterable.
+     */
+    public ReadWriteItemHandler(Collection<ItemStack> iterable) {
+        super(iterable);
+        this.transactionSupplier = ItemHandlerTransaction::new;
+    }
+
+    /**
+     * Creates a none default handler with the given size.
      * Modifyability of slots depends on the implementation of the
      * {@link ItemHandlerTransaction} returned by the supplier function.
      *
@@ -61,15 +78,28 @@ public class ReadWriteItemHandler extends AbstractReadWriteContainer<ItemStack> 
     }
 
     /**
-     * Creates a none default handler with the given size.
+     * Creates a none default handler with the given array.
      * Modifyability of slots depends on the implementation of the
      * {@link ItemHandlerTransaction} returned by the supplier function.
      *
      * @param transactionSupplier The supplier function to generate new transactions.
-     * @param container The container.
+     * @param iterable The iterable.
      */
-    public ReadWriteItemHandler(Function<ReadWriteItemHandler, ItemHandlerTransaction> transactionSupplier, ItemStack... container) {
-        super(container);
+    public ReadWriteItemHandler(Function<ReadWriteItemHandler, ItemHandlerTransaction> transactionSupplier, ItemStack... iterable) {
+        super(iterable);
+        this.transactionSupplier = transactionSupplier;
+    }
+
+    /**
+     * Creates a none default handler with the given collection as delegate.
+     * Modifyability of slots depends on the implementation of the
+     * {@link ItemHandlerTransaction} returned by the supplier function.
+     *
+     * @param transactionSupplier The supplier function to generate new transactions.
+     * @param iterable The iterable.
+     */
+    public ReadWriteItemHandler(Function<ReadWriteItemHandler, ItemHandlerTransaction> transactionSupplier, Collection<ItemStack> iterable) {
+        super(iterable);
         this.transactionSupplier = transactionSupplier;
     }
 
@@ -81,17 +111,7 @@ public class ReadWriteItemHandler extends AbstractReadWriteContainer<ItemStack> 
 
     @Override
     public boolean isActiveTransaction(IContainerTransaction<ItemStack> transactionToCheck) {
-        return false;
-    }
-
-    @Override
-    public ItemStack getContentsOfSlot(int slot) {
-        final ItemStack superStack = super.getContentsOfSlot(slot);
-
-        if (superStack == null)
-            return ItemStack.EMPTY;
-
-        return superStack;
+        return activeTransaction == transactionToCheck;
     }
 
     /**
@@ -107,22 +127,22 @@ public class ReadWriteItemHandler extends AbstractReadWriteContainer<ItemStack> 
         private final ReadWriteItemHandler itemHandler;
 
         public ItemHandlerTransaction(ReadWriteItemHandler itemHandler) {
-            super(Arrays.copyOf(itemHandler.container, itemHandler.container.length));
+            super(itemHandler.container);
             this.itemHandler = itemHandler;
         }
 
         @Override
-        public void cancel() {
+        public final void cancel() {
             if (itemHandler.isActiveTransaction(this))
                 itemHandler.activeTransaction = null;
         }
 
         @Override
-        public void commit() throws TransactionNotValidException {
+        public final void commit() throws TransactionNotValidException {
             if (!itemHandler.isActiveTransaction(this))
                 throw new TransactionNotValidException(itemHandler, this);
 
-            itemHandler.container = Arrays.copyOf(this.container, this.container.length);
+            itemHandler.container = new ListWithFixedSize<>(container);
         }
 
         @Override
@@ -147,7 +167,7 @@ public class ReadWriteItemHandler extends AbstractReadWriteContainer<ItemStack> 
             if (primary.getCount() <= 0)
                 primary = ItemStack.EMPTY;
 
-            this.container[slot] = insertedStack;
+            this.container.set(slot, insertedStack);
 
             return ContainerTransactionOperationResult.success(primary, secondary);
         }
@@ -171,7 +191,7 @@ public class ReadWriteItemHandler extends AbstractReadWriteContainer<ItemStack> 
                 remaining = ItemStack.EMPTY;
 
             //Clone the stack again since remaining is also a secondary output.
-            this.container[slot] = remaining.copy();
+            this.container.set(slot, remaining.copy());
 
             return ContainerTransactionOperationResult.success(extracted, remaining);
         }

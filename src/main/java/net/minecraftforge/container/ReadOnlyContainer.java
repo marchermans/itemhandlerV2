@@ -2,10 +2,14 @@ package net.minecraftforge.container;
 
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.container.api.IReadOnlyContainer;
+import net.minecraftforge.util.ListWithFixedSize;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * An abstract implementation of the {@link IReadOnlyContainer} interface.
- * Uses an Array as backing storage.
+ * Uses a {@link ListWithFixedSize} as backing storage.
  *
  * @param <T> The instance stored in this container.
  */
@@ -13,9 +17,8 @@ public class ReadOnlyContainer<T> implements IReadOnlyContainer<T> {
 
     /**
      * The underlying datastorage for the container.
-     * Since {@code T[]} is not a valid java declaration we are using an Object[] here.
      */
-    protected Object[] container;
+    protected List<T> container;
 
     /**
      * Creates a new container with a given size.
@@ -24,7 +27,7 @@ public class ReadOnlyContainer<T> implements IReadOnlyContainer<T> {
      */
     public ReadOnlyContainer(final int size)
     {
-        this.container = new Object[size];
+        this.container = new ListWithFixedSize<>(size);
     }
 
     /**
@@ -33,18 +36,27 @@ public class ReadOnlyContainer<T> implements IReadOnlyContainer<T> {
      *
      * @param container The container.
      */
-    protected ReadOnlyContainer(final Object ... container) {
-        this.container = container;
+    public ReadOnlyContainer(final T... container) {
+        this.container = new ListWithFixedSize<>(container);
+    }
+
+    /**
+     * Creates a new container from the given collection of elements.
+     * The container will get the size of the given list.
+     *
+     * @param iterable The collection to base this container of.
+     */
+    public ReadOnlyContainer(final Collection<T> iterable) {
+        this.container = new ListWithFixedSize<>(iterable);
     }
 
     @Override
     public int getContainerSize() {
-        return container.length;
+        return container.size();
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public T getContentsOfSlot(final int slot) {
-        return (T) container[slot];
+        return container.get(slot);
     }
 }
