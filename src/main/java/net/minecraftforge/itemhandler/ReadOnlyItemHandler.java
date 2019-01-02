@@ -26,6 +26,10 @@ public class ReadOnlyItemHandler extends AbstractReadOnlyContainer<ItemStack> im
         super(container);
     }
 
+    protected ReadOnlyItemHandler(Object... container) {
+        super(container);
+    }
+
     @Override
     protected ItemStack makeImmutable(ItemStack tInstance) {
         if (tInstance == null)

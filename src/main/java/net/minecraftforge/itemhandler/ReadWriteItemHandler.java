@@ -102,6 +102,7 @@ public class ReadWriteItemHandler extends AbstractReadWriteContainer<ItemStack> 
         private final ReadWriteItemHandler itemHandler;
 
         public ItemHandlerTransaction(ReadWriteItemHandler itemHandler) {
+            super(Arrays.copyOf(itemHandler.container, itemHandler.container.length));
             this.itemHandler = itemHandler;
         }
 

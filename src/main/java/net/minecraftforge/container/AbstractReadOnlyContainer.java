@@ -37,7 +37,7 @@ public abstract class AbstractReadOnlyContainer<T> implements IReadOnlyContainer
      *
      * @param container The container.
      */
-    public AbstractReadOnlyContainer(final T ... container) {
+    protected AbstractReadOnlyContainer(final Object ... container) {
         this.container = container;
     }
 
