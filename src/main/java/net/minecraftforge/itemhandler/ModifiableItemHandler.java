@@ -166,6 +166,9 @@ public class ModifiableItemHandler extends ItemHandler implements IModifiableIte
             if (primary.getCount() <= 0)
                 primary = ItemStack.EMPTY;
 
+            if (primary.getCount() == toInsert.getCount())
+                return ContainerOperationResult.failed();
+
             this.container.set(slot, insertedStack);
 
             return ContainerOperationResult.success(primary, secondary);

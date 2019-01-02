@@ -49,6 +49,10 @@ public interface IContainerOperationResult<T> {
 
         /**
          * When inserting, the target slot contains something that can not be merged with the inserting object.
+         *
+         * In general this means that the operation is generally possible with the slot / transaction, yet
+         * it can not be performed right now, because the current state of the transaction is conflicting
+         * with the the operation. (Stack and or Fluids are not mergeable.)
          */
         CONFLICTING,
 
