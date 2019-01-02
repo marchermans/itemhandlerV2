@@ -35,7 +35,7 @@ public class ContainerIterator<T> implements Iterator<T> {
     @Override
     public boolean hasNext()
     {
-        return index < container.getContainerSize();
+        return index < container.getSize();
     }
 
     @Override
@@ -44,7 +44,7 @@ public class ContainerIterator<T> implements Iterator<T> {
         if (!hasNext())
             throw new NoSuchElementException("No element left in container to iterate over.");
 
-        final T contentsOfSlot = container.getContentsOfSlot(index);
+        final T contentsOfSlot = container.get(index);
         index++;
         return contentsOfSlot;
     }

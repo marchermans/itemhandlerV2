@@ -1,6 +1,8 @@
 package net.minecraftforge.container.api;
 
 import java.util.*;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * A generic readonly container for objects in the Minecraft universe.
@@ -21,7 +23,7 @@ public interface IContainer<T> extends Iterable<T>
      *
      * @return The size of the container.
      */
-    int getContainerSize();
+    int getSize();
 
     /**
      * Method to get the contents of the current slot.
@@ -36,7 +38,7 @@ public interface IContainer<T> extends Iterable<T>
      * @param slot The slot to get the contents from.
      * @return A cloned instance of the object in the slot, or null.
      */
-    T getContentsOfSlot(final int slot);
+    T get(final int slot);
 
     @Override
     default Iterator<T> iterator()
@@ -47,8 +49,44 @@ public interface IContainer<T> extends Iterable<T>
     @Override
     default Spliterator<T> spliterator()
     {
-        return Spliterators.spliterator(iterator(), getContainerSize(), Spliterator.SIZED | Spliterator.IMMUTABLE);
+        return Spliterators.spliterator(iterator(), getSize(), Spliterator.SIZED | Spliterator.IMMUTABLE | Spliterator.ORDERED);
     }
 
+    /**
+     * Method to get a stream of contents of this container.
+     * The contents are returned in slot order. Depending on the implementation
+     * certain entries might be null.
+     *
+     * <p/>
+     * IMPORTANT: The objects in the stream MUST NOT be modified. This method is not for
+     * altering a containers contents. Any implementers who are able to detect
+     * modification through this method should throw an exception.
+     * <p/>
+     * SERIOUSLY: DO NOT MODIFY THE OBJECTS IN THE STREAM!
+     *
+     * @return A stream with the contents of this container.
+     */
+    default Stream<T> stream()
+    {
+        return StreamSupport.stream(spliterator(), false);
+    }
 
+    /**
+     * Method to get a parallel stream of contents of this container.
+     * The contents are returned in slot order. Depending on the implementation
+     * certain entries might be null.
+     *
+     * <p/>
+     * IMPORTANT: The objects in the stream MUST NOT be modified. This method is not for
+     * altering a containers contents. Any implementers who are able to detect
+     * modification through this method should throw an exception.
+     * <p/>
+     * SERIOUSLY: DO NOT MODIFY THE OBJECTS IN THE STREAM!
+     *
+     * @return A stream with the contents of this container.
+     */
+    default Stream<T> parallelStream()
+    {
+        return StreamSupport.stream(spliterator(), true);
+    }
 }

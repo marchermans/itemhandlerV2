@@ -14,30 +14,30 @@ public class CombiningContainer<T> implements IContainer<T> {
     }
 
     @Override
-    public int getContainerSize() {
-        return readOnlyContainers.stream().mapToInt(IContainer::getContainerSize).sum();
+    public int getSize() {
+        return readOnlyContainers.stream().mapToInt(IContainer::getSize).sum();
     }
 
     @Override
-    public T getContentsOfSlot(int slot) {
+    public T get(int slot) {
         final Tuple<Integer, Integer> targets = calculateInternalSlotInformationFromSlotIndex(slot);
 
-        return this.readOnlyContainers.get(targets.getFirst()).getContentsOfSlot(targets.getSecond());
+        return this.readOnlyContainers.get(targets.getFirst()).get(targets.getSecond());
     }
 
     protected Tuple<Integer, Integer> calculateInternalSlotInformationFromSlotIndex(int slotIndex)
     {
-        if (slotIndex < 0 || slotIndex >= getContainerSize())
-            throw new IllegalArgumentException(String.format("Slot is not within range: 0-%d", getContainerSize()));
+        if (slotIndex < 0 || slotIndex >= getSize())
+            throw new IllegalArgumentException(String.format("Slot is not within range: 0-%d", getSize()));
 
 
         for (int i = 0; i < readOnlyContainers.size(); i++) {
-            if (slotIndex < readOnlyContainers.get(i).getContainerSize())
+            if (slotIndex < readOnlyContainers.get(i).getSize())
                 return new Tuple<>(i, slotIndex);
 
-            slotIndex -= readOnlyContainers.get(i).getContainerSize();
+            slotIndex -= readOnlyContainers.get(i).getSize();
         }
 
-        throw new IllegalArgumentException(String.format("Slot is not within range: 0-%d", getContainerSize()));
+        throw new IllegalArgumentException(String.format("Slot is not within range: 0-%d", getSize()));
     }
 }

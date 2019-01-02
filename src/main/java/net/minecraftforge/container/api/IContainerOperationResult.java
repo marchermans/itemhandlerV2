@@ -1,6 +1,6 @@
 package net.minecraftforge.container.api;
 
-public interface IContainerTransactionOperationResult<T> {
+public interface IContainerOperationResult<T> {
 
     /**
      * The primary result of the transactional operation.

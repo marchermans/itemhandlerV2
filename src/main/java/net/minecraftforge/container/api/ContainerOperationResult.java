@@ -1,14 +1,12 @@
-package net.minecraftforge.container;
-
-import net.minecraftforge.container.api.IContainerTransactionOperationResult;
+package net.minecraftforge.container.api;
 
 /**
- * Default implementation of {@link IContainerTransactionOperationResult}.
+ * Default implementation of {@link IContainerOperationResult}.
  * Provides some static utility methods to quickly create relevant result types.
  *
  * @param <T> The type of the operation.
  */
-public class ContainerTransactionOperationResult<T> implements IContainerTransactionOperationResult<T> {
+public class ContainerOperationResult<T> implements IContainerOperationResult<T> {
 
     /**
      * Creates a new operation result with a success status.
@@ -17,11 +15,11 @@ public class ContainerTransactionOperationResult<T> implements IContainerTransac
      * @param secondary The secondary operation result. Null or some default value if not available.
      * @param <T> The type of the operation.
      *
-     * @return An instance of {@link ContainerTransactionOperationResult} indicating success with the given primary and secondary results.
+     * @return An instance of {@link ContainerOperationResult} indicating success with the given primary and secondary results.
      */
-    public static <T> IContainerTransactionOperationResult<T> success(final T primary, final T secondary)
+    public static <T> IContainerOperationResult<T> success(final T primary, final T secondary)
     {
-        return new ContainerTransactionOperationResult<>(primary, secondary, Status.SUCCESS);
+        return new ContainerOperationResult<>(primary, secondary, Status.SUCCESS);
     }
 
     /**
@@ -29,11 +27,11 @@ public class ContainerTransactionOperationResult<T> implements IContainerTransac
      *
      * @param <T> The type of the operation.
      *
-     * @return An instance of {@link ContainerTransactionOperationResult} indicating failure.
+     * @return An instance of {@link ContainerOperationResult} indicating failure.
      */
-    public static <T> IContainerTransactionOperationResult<T> failed()
+    public static <T> IContainerOperationResult<T> failed()
     {
-        return new ContainerTransactionOperationResult<>(null, null, Status.FAILURE);
+        return new ContainerOperationResult<>(null, null, Status.FAILURE);
     }
 
     /**
@@ -41,11 +39,11 @@ public class ContainerTransactionOperationResult<T> implements IContainerTransac
      *
      * @param <T> The type of the operation.
      *
-     * @return An instance of {@link ContainerTransactionOperationResult} indicating an invalid operation.
+     * @return An instance of {@link ContainerOperationResult} indicating an invalid operation.
      */
-    public static <T> IContainerTransactionOperationResult<T> invalid()
+    public static <T> IContainerOperationResult<T> invalid()
     {
-        return new ContainerTransactionOperationResult<>(null, null, Status.INVALID);
+        return new ContainerOperationResult<>(null, null, Status.INVALID);
     }
 
     /**
@@ -53,24 +51,24 @@ public class ContainerTransactionOperationResult<T> implements IContainerTransac
      *
      * @param <T> The type of the operation.
      *
-     * @return An instance of {@link ContainerTransactionOperationResult} indicating a conflicting operation.
+     * @return An instance of {@link ContainerOperationResult} indicating a conflicting operation.
      */
-    public static <T> IContainerTransactionOperationResult<T> conflicting()
+    public static <T> IContainerOperationResult<T> conflicting()
     {
-        return new ContainerTransactionOperationResult<>(null, null, Status.CONFLICTING);
+        return new ContainerOperationResult<>(null, null, Status.CONFLICTING);
     }
 
     /**
      * The primary object. Might be null depending on the status in {@link #status}
      *
-     * @see net.minecraftforge.container.api.IContainerTransactionOperationResult.Status
+     * @see IContainerOperationResult.Status
      */
     private final T primary;
 
     /**
      * The secondary object. Might be null depending on the status in {@link #status}
      *
-     * @see net.minecraftforge.container.api.IContainerTransactionOperationResult.Status
+     * @see IContainerOperationResult.Status
      */
     private final T secondary;
 
@@ -86,7 +84,7 @@ public class ContainerTransactionOperationResult<T> implements IContainerTransac
      * @param secondary The secondary operation result. Null or some default value if not available.
      * @param status The status of the operation.
      */
-    public ContainerTransactionOperationResult(T primary, T secondary, Status status) {
+    public ContainerOperationResult(T primary, T secondary, Status status) {
         this.primary = primary;
         this.secondary = secondary;
         this.status = status;

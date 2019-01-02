@@ -51,12 +51,12 @@ public class Container<T> implements IContainer<T> {
     }
 
     @Override
-    public int getContainerSize() {
+    public int getSize() {
         return container.size();
     }
 
     @Override
-    public T getContentsOfSlot(final int slot) {
+    public T get(final int slot) {
         return container.get(slot);
     }
 }

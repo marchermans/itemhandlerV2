@@ -30,8 +30,8 @@ public class ItemHandler extends Container<ItemStack> implements IItemHandler {
     }
 
     @Override
-    public ItemStack getContentsOfSlot(int slot) {
-        final ItemStack superStack = super.getContentsOfSlot(slot);
+    public ItemStack get(int slot) {
+        final ItemStack superStack = super.get(slot);
 
         if (superStack == null)
             return ItemStack.EMPTY;

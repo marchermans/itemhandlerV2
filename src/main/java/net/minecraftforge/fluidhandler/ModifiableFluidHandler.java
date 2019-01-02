@@ -1,8 +1,8 @@
 package net.minecraftforge.fluidhandler;
 
-import net.minecraftforge.container.ContainerTransactionOperationResult;
+import net.minecraftforge.container.api.ContainerOperationResult;
 import net.minecraftforge.container.api.IContainerTransaction;
-import net.minecraftforge.container.api.IContainerTransactionOperationResult;
+import net.minecraftforge.container.api.IContainerOperationResult;
 import net.minecraftforge.container.api.IModifiableContainer;
 import net.minecraftforge.container.api.TransactionNotValidException;
 import net.minecraftforge.fluidhandler.api.IFluidHandlerTransaction;
@@ -132,18 +132,18 @@ public class ModifiableFluidHandler extends FluidHandler implements IModifiableF
         }
 
         @Override
-        public IContainerTransactionOperationResult<FluidStack> insert(int slot, FluidStack toInsert) {
+        public IContainerOperationResult<FluidStack> insert(int slot, FluidStack toInsert) {
             //Null stacks can not be inserted by default. They are an invalid call to this method.
-            if (toInsert == null || slot < 0 || slot >= getContainerSize())
-                return ContainerTransactionOperationResult.invalid();
+            if (toInsert == null || slot < 0 || slot >= getSize())
+                return ContainerOperationResult.invalid();
 
-            final FluidStack stack = getContentsOfSlot(slot);
+            final FluidStack stack = get(slot);
             final FluidStack secondary = stack.copy();
             final boolean stackable = stack.isFluidEqual(toInsert);
 
             //None stackable stacks are conflicting
             if (!stackable)
-                return ContainerTransactionOperationResult.conflicting();
+                return ContainerOperationResult.conflicting();
 
             final FluidStack insertedStack = stack.copy();
             insertedStack.amount = stack.amount + toInsert.amount;
@@ -155,18 +155,18 @@ public class ModifiableFluidHandler extends FluidHandler implements IModifiableF
 
             this.container.set(slot, insertedStack);
 
-            return ContainerTransactionOperationResult.success(primary, secondary);
+            return ContainerOperationResult.success(primary, secondary);
         }
 
         @Override
-        public IContainerTransactionOperationResult<FluidStack> extract(int slot, int amount) {
+        public IContainerOperationResult<FluidStack> extract(int slot, int amount) {
             //Extracting <= 0 is invalid by default for this method.
-            if (amount <= 0 || slot < 0 || slot >= getContainerSize())
-                return ContainerTransactionOperationResult.invalid();
+            if (amount <= 0 || slot < 0 || slot >= getSize())
+                return ContainerOperationResult.invalid();
 
-            final FluidStack stack = getContentsOfSlot(slot);
+            final FluidStack stack = get(slot);
             if (stack == null)
-                return ContainerTransactionOperationResult.failed();
+                return ContainerOperationResult.failed();
 
             final FluidStack extracted = stack.copy();
             extracted.amount = Math.min(extracted.amount, amount);
@@ -179,7 +179,7 @@ public class ModifiableFluidHandler extends FluidHandler implements IModifiableF
             //Clone the stack again since remaining is also a secondary output.
             this.container.set(slot, remaining != null ? remaining.copy() : null);
 
-            return ContainerTransactionOperationResult.success(extracted, remaining);
+            return ContainerOperationResult.success(extracted, remaining);
         }
 
         @Override

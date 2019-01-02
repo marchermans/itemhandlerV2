@@ -29,6 +29,7 @@ public class ListWithFixedSize<T> extends AbstractList<T>
      *
      * @param iterable The array.
      */
+    @SafeVarargs
     public ListWithFixedSize(T ... iterable)
     {
         this.delegate = iterable;

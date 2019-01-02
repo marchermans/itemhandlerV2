@@ -87,10 +87,10 @@ public class CombiningModifiableContainer<T> extends CombiningContainer<T> imple
          *
          * @param slot     The slot to insert into.
          * @param toInsert The object to insert.
-         * @return An instance of {@link IContainerTransactionOperationResult} that indicates success or failure, and provides results.
+         * @return An instance of {@link IContainerOperationResult} that indicates success or failure, and provides results.
          */
         @Override
-        public IContainerTransactionOperationResult<T> insert(int slot, T toInsert) {
+        public IContainerOperationResult<T> insert(int slot, T toInsert) {
             final Tuple<Integer, Integer> targets = calculateInternalSlotInformationFromSlotIndex(slot);
             return this.internalTransactionHandlers.get(targets.getFirst()).insert(targets.getSecond(), toInsert);
         }
@@ -100,10 +100,10 @@ public class CombiningModifiableContainer<T> extends CombiningContainer<T> imple
          *
          * @param slot   The slot to extract from.
          * @param amount The amount to extract.
-         * @return An instance of {@link IContainerTransactionOperationResult} that indicates success or failure, and provides results.
+         * @return An instance of {@link IContainerOperationResult} that indicates success or failure, and provides results.
          */
         @Override
-        public IContainerTransactionOperationResult<T> extract(int slot, int amount) {
+        public IContainerOperationResult<T> extract(int slot, int amount) {
             final Tuple<Integer, Integer> targets = calculateInternalSlotInformationFromSlotIndex(slot);
             return this.internalTransactionHandlers.get(targets.getFirst()).extract(targets.getSecond(), amount);
         }

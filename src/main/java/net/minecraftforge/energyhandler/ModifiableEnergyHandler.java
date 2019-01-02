@@ -1,8 +1,8 @@
 package net.minecraftforge.energyhandler;
 
-import net.minecraftforge.container.ContainerTransactionOperationResult;
+import net.minecraftforge.container.api.ContainerOperationResult;
 import net.minecraftforge.container.api.IContainerTransaction;
-import net.minecraftforge.container.api.IContainerTransactionOperationResult;
+import net.minecraftforge.container.api.IContainerOperationResult;
 import net.minecraftforge.container.api.IModifiableContainer;
 import net.minecraftforge.container.api.TransactionNotValidException;
 import net.minecraftforge.energyhandler.api.IEnergyHandlerTransaction;
@@ -132,31 +132,31 @@ public class ModifiableEnergyHandler extends EnergyHandler implements IModifiabl
         }
 
         @Override
-        public IContainerTransactionOperationResult<Integer> insert(int slot, Integer toInsert) {
+        public IContainerOperationResult<Integer> insert(int slot, Integer toInsert) {
             //Negative or 0 power can not be inserted. They are an invalid call to this method.
-            if (toInsert <= 0 || slot < 0 || slot >= getContainerSize())
-                return ContainerTransactionOperationResult.invalid();
+            if (toInsert <= 0 || slot < 0 || slot >= getSize())
+                return ContainerOperationResult.invalid();
             
-            final Integer current = getContentsOfSlot(slot);
+            final Integer current = get(slot);
             final Integer newMax = current + toInsert;
             
             this.container.set(slot, newMax);
             
-            return ContainerTransactionOperationResult.success(toInsert, current);
+            return ContainerOperationResult.success(toInsert, current);
         }
 
         @Override
-        public IContainerTransactionOperationResult<Integer> extract(int slot, int amount) {
+        public IContainerOperationResult<Integer> extract(int slot, int amount) {
             //Negative or 0 power can not be extracted. They are an invalid call to this method.
-            if (amount <= 0 || slot < 0 || slot >= getContainerSize())
-                return ContainerTransactionOperationResult.invalid();
+            if (amount <= 0 || slot < 0 || slot >= getSize())
+                return ContainerOperationResult.invalid();
 
-            final Integer current = getContentsOfSlot(slot);
+            final Integer current = get(slot);
             final Integer newMin = Math.min(0, current - amount);
             
             this.container.set(slot, newMin);
 
-            return ContainerTransactionOperationResult.success(amount, newMin);
+            return ContainerOperationResult.success(amount, newMin);
         }
 
         @Override
