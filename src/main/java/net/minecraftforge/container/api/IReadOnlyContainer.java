@@ -2,6 +2,12 @@ package net.minecraftforge.container.api;
 
 import java.util.*;
 
+/**
+ * A generic readonly container for objects in the Minecraft universe.
+ * For ItemStacks this is an IItemHandler, for Fluids this is an IFluidHandler and so forth.
+ *
+ * @param <T> The type contained in this container.
+ */
 public interface IReadOnlyContainer<T> extends Iterable<T>
 {
 

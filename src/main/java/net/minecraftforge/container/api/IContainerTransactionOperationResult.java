@@ -8,18 +8,19 @@ public interface IContainerTransactionOperationResult<T> {
      * For an insertion this is the left over stack. Might be null or empty.
      * For an extraction this is the extracted stack. Might be null or empty.
      *
-     * @return The result of the operation.
+     * @return The primary result of the operation.
      */
-    T getPrimaryResult();
+    T getPrimary();
 
     /**
      * The secondary result of the transactional operation.
      *
      * For an insertion this is the stack that was previously in the inserted slot.
      * For an extraction this is the stack left in the slot.
-     * @return
+     *
+     * @return The secondary result of the operation.
      */
-    T getSecondaryResult();
+    T getSecondary();
 
     /**
      * Returns the status of transactional operation.
@@ -47,12 +48,19 @@ public interface IContainerTransactionOperationResult<T> {
         SUCCESS,
 
         /**
+         * When inserting, the target slot contains something that can not be merged with the inserting object.
+         */
+        CONFLICTING,
+
+        /**
          * When inserting, the targeted slot of the container is full.
          * When extracting, the targeted slot of the container is empty.
          */
         FAILURE,
 
         /**
+         * General invalid method call or eg:
+         *
          * When inserting, the stack can not be inserted into the target slot.
          * When extracting, the target slot is readonly.
          */
@@ -69,5 +77,7 @@ public interface IContainerTransactionOperationResult<T> {
         boolean isInvalid(){
             return this == INVALID;
         }
+
+        boolean isConflicting() { return this == CONFLICTING; }
     }
 }

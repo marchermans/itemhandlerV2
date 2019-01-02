@@ -1,29 +1,25 @@
 package net.minecraftforge.container.api;
 
+/**
+ * A transaction supporting read and write version of the {@link IReadOnlyContainer}.
+ *
+ * @param <T> The type stored in the container.
+ *
+ * @see IContainerTransaction
+ */
 public interface IReadWriteContainer<T> extends IReadOnlyContainer<T>
 {
 
     /**
      * Begins a new transaction for this container.
      *
-     * Either call {@link IContainerTransaction#commit()} or {@link #commitTransaction(IContainerTransaction)}
+     * Either call {@link IContainerTransaction#commit()}
      * to commit the transaction and make it live, or call {@link IContainerTransaction#cancel()}
      * to cancel the transaction.
      *
      * @return The transaction object to handle the transaction.
      */
     IContainerTransaction<T> beginTransaction();
-
-    /**
-     * Ends a given transaction and makes its changes the live changes.
-     * Can only be called with the latest result of {@link #beginTransaction()}
-     *
-     * If called with any other instance of {@link IContainerTransaction} then an {@link IllegalArgumentException} is thrown.
-     *
-     * @param transactionToCommit The transaction to commit.
-     * @throws TransactionNotValidException when a not active {@link IContainerTransaction} is given to commit
-     */
-    void commitTransaction(final IContainerTransaction<T> transactionToCommit) throws TransactionNotValidException;
 
     /**
      * Checks if the given transaction is the active one.
