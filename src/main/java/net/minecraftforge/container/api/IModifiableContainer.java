@@ -1,13 +1,13 @@
 package net.minecraftforge.container.api;
 
 /**
- * A transaction supporting read and write version of the {@link IReadOnlyContainer}.
+ * A transaction supporting read and write version of the {@link IContainer}.
  *
  * @param <T> The type stored in the container.
  *
  * @see IContainerTransaction
  */
-public interface IReadWriteContainer<T> extends IReadOnlyContainer<T>
+public interface IModifiableContainer<T> extends IContainer<T>
 {
 
     /**

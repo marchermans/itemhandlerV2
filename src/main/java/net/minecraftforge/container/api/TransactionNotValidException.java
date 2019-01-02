@@ -6,7 +6,7 @@ package net.minecraftforge.container.api;
 public class TransactionNotValidException extends Exception {
 
     //Exceptions can not be generic......
-    private final IReadWriteContainer<?> container;
+    private final IModifiableContainer<?> container;
     private final IContainerTransaction<?> failedTransaction;
 
     /**
@@ -15,7 +15,7 @@ public class TransactionNotValidException extends Exception {
      * @param container The container.
      * @param failedTransaction The transaction.
      */
-    public TransactionNotValidException(final IReadWriteContainer<?> container, final IContainerTransaction<?> failedTransaction) {
+    public TransactionNotValidException(final IModifiableContainer<?> container, final IContainerTransaction<?> failedTransaction) {
         super(String.format("Failed to commit transaction%s to container %s. It is not the active transaction.", failedTransaction, container));
         this.container = container;
         this.failedTransaction = failedTransaction;
@@ -26,7 +26,7 @@ public class TransactionNotValidException extends Exception {
      *
      * @return The container for which the transaction failed.
      */
-    public IReadWriteContainer<?> getContainer() {
+    public IModifiableContainer<?> getContainer() {
         return container;
     }
 

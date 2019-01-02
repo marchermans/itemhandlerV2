@@ -1,27 +1,24 @@
 package net.minecraftforge.fluidhandler;
 
-import net.minecraft.item.ItemStack;
 import net.minecraftforge.container.ContainerTransactionOperationResult;
 import net.minecraftforge.container.api.IContainerTransaction;
 import net.minecraftforge.container.api.IContainerTransactionOperationResult;
-import net.minecraftforge.container.api.IReadWriteContainer;
+import net.minecraftforge.container.api.IModifiableContainer;
 import net.minecraftforge.container.api.TransactionNotValidException;
 import net.minecraftforge.fluidhandler.api.IFluidHandlerTransaction;
-import net.minecraftforge.fluidhandler.api.IReadWriteFluidHandler;
+import net.minecraftforge.fluidhandler.api.IModifiableFluidHandler;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.itemhandler.ReadWriteItemHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.util.ListWithFixedSize;
 
 import java.util.Collection;
 import java.util.function.Function;
 
-public class ReadWriteFluidHandler extends ReadOnlyFluidHandler implements IReadWriteFluidHandler {
+public class ModifiableFluidHandler extends FluidHandler implements IModifiableFluidHandler {
 
     /**
      * The callback function that supplies the handler with the relevant transactions.
      */
-    private final Function<ReadWriteFluidHandler, ReadWriteFluidHandler.FluidHandlerTransaction> transactionSupplier;
+    private final Function<ModifiableFluidHandler, ModifiableFluidHandler.FluidHandlerTransaction> transactionSupplier;
 
     /**
      * The current transaction.
@@ -34,7 +31,7 @@ public class ReadWriteFluidHandler extends ReadOnlyFluidHandler implements IRead
      *
      * @param size The size of the container.
      */
-    public ReadWriteFluidHandler(int size) {
+    public ModifiableFluidHandler(int size) {
         super(size);
         this.transactionSupplier = FluidHandlerTransaction::new;
     }
@@ -45,7 +42,7 @@ public class ReadWriteFluidHandler extends ReadOnlyFluidHandler implements IRead
      *
      * @param iterable The iterable.
      */
-    public ReadWriteFluidHandler(FluidStack... iterable) {
+    public ModifiableFluidHandler(FluidStack... iterable) {
         super(iterable);
         this.transactionSupplier = FluidHandlerTransaction::new;
     }
@@ -56,7 +53,7 @@ public class ReadWriteFluidHandler extends ReadOnlyFluidHandler implements IRead
      *
      * @param iterable The iterable.
      */
-    public ReadWriteFluidHandler(Collection<FluidStack> iterable) {
+    public ModifiableFluidHandler(Collection<FluidStack> iterable) {
         super(iterable);
         this.transactionSupplier = FluidHandlerTransaction::new;
     }
@@ -69,7 +66,7 @@ public class ReadWriteFluidHandler extends ReadOnlyFluidHandler implements IRead
      * @param transactionSupplier The supplier function to generate new transactions.
      * @param size The size of the handler.
      */
-    public ReadWriteFluidHandler(Function<ReadWriteFluidHandler, FluidHandlerTransaction> transactionSupplier, int size) {
+    public ModifiableFluidHandler(Function<ModifiableFluidHandler, FluidHandlerTransaction> transactionSupplier, int size) {
         super(size);
         this.transactionSupplier = transactionSupplier;
     }
@@ -82,7 +79,7 @@ public class ReadWriteFluidHandler extends ReadOnlyFluidHandler implements IRead
      * @param transactionSupplier The supplier function to generate new transactions.
      * @param iterable The iterable.
      */
-    public ReadWriteFluidHandler(Function<ReadWriteFluidHandler, FluidHandlerTransaction> transactionSupplier, FluidStack... iterable) {
+    public ModifiableFluidHandler(Function<ModifiableFluidHandler, FluidHandlerTransaction> transactionSupplier, FluidStack... iterable) {
         super(iterable);
         this.transactionSupplier = transactionSupplier;
     }
@@ -95,7 +92,7 @@ public class ReadWriteFluidHandler extends ReadOnlyFluidHandler implements IRead
      * @param transactionSupplier The supplier function to generate new transactions.
      * @param iterable The iterable.
      */
-    public ReadWriteFluidHandler(Function<ReadWriteFluidHandler, FluidHandlerTransaction> transactionSupplier, Collection<FluidStack> iterable) {
+    public ModifiableFluidHandler(Function<ModifiableFluidHandler, FluidHandlerTransaction> transactionSupplier, Collection<FluidStack> iterable) {
         super(iterable);
         this.transactionSupplier = transactionSupplier;
     }
@@ -111,11 +108,11 @@ public class ReadWriteFluidHandler extends ReadOnlyFluidHandler implements IRead
         return activeTransaction == transactionToCheck;
     }
 
-    public class FluidHandlerTransaction extends ReadOnlyFluidHandler implements IFluidHandlerTransaction
+    public class FluidHandlerTransaction extends FluidHandler implements IFluidHandlerTransaction
     {
-        private final ReadWriteFluidHandler fluidHandler;
+        private final ModifiableFluidHandler fluidHandler;
 
-        public FluidHandlerTransaction(ReadWriteFluidHandler fluidHandler) {
+        public FluidHandlerTransaction(ModifiableFluidHandler fluidHandler) {
             super(fluidHandler.container);
             this.fluidHandler = fluidHandler;
         }
@@ -136,7 +133,7 @@ public class ReadWriteFluidHandler extends ReadOnlyFluidHandler implements IRead
 
         @Override
         public IContainerTransactionOperationResult<FluidStack> insert(int slot, FluidStack toInsert) {
-            //Empty stacks can not be inserted by default. They are an invalid call to this method.
+            //Null stacks can not be inserted by default. They are an invalid call to this method.
             if (toInsert == null || slot < 0 || slot >= getContainerSize())
                 return ContainerTransactionOperationResult.invalid();
 
@@ -186,7 +183,7 @@ public class ReadWriteFluidHandler extends ReadOnlyFluidHandler implements IRead
         }
 
         @Override
-        public IReadWriteContainer<FluidStack> getContainer() {
+        public IModifiableContainer<FluidStack> getContainer() {
             return fluidHandler;
         }
     }

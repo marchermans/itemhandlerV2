@@ -2,11 +2,11 @@ package net.minecraftforge.container.api;
 
 /**
  * Represents a single atomic operation of, possibly chained< inserts and extracts
- * that modify the {@link IReadWriteContainer} by which the instance was created.
+ * that modify the {@link IModifiableContainer} by which the instance was created.
  *
- * @param <T> The type stored in the created {@link IReadWriteContainer}.
+ * @param <T> The type stored in the created {@link IModifiableContainer}.
  */
-public interface IContainerTransaction<T> extends IReadOnlyContainer<T> {
+public interface IContainerTransaction<T> extends IContainer<T> {
 
     /**
      * Cancels the current transaction.
@@ -15,7 +15,7 @@ public interface IContainerTransaction<T> extends IReadOnlyContainer<T> {
 
     /**
      * Attempts to commit the transaction.
-     * If this method is called on a not active transaction, indicated by {@link IReadWriteContainer#isActiveTransaction(IContainerTransaction)}
+     * If this method is called on a not active transaction, indicated by {@link IModifiableContainer#isActiveTransaction(IContainerTransaction)}
      * being false, then an exception is thrown.
      *
      * @throws TransactionNotValidException When this transaction is not the active transaction.
@@ -48,5 +48,5 @@ public interface IContainerTransaction<T> extends IReadOnlyContainer<T> {
      *
      * @return The container.
      */
-    IReadWriteContainer<T> getContainer();
+    IModifiableContainer<T> getContainer();
 }

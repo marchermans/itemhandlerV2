@@ -8,7 +8,7 @@ import java.util.*;
  *
  * @param <T> The type contained in this container.
  */
-public interface IReadOnlyContainer<T> extends Iterable<T>
+public interface IContainer<T> extends Iterable<T>
 {
 
     /**

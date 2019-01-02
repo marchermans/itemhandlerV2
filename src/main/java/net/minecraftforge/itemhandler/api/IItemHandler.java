@@ -1,13 +1,13 @@
 package net.minecraftforge.itemhandler.api;
 
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.container.api.IReadOnlyContainer;
+import net.minecraftforge.container.api.IContainer;
 
 /**
  * The default readonly container interface for ItemStacks
  *
- * @see IReadOnlyContainer
+ * @see IContainer
  * @see ItemStack
  */
-public interface IReadOnlyItemHandler extends IReadOnlyContainer<ItemStack> {
+public interface IItemHandler extends IContainer<ItemStack> {
 }

@@ -7,14 +7,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class CombiningReadWriteContainer<T> extends CombiningReadOnlyContainer<T> implements IReadWriteContainer<T> {
+public class CombiningModifiableContainer<T> extends CombiningContainer<T> implements IModifiableContainer<T> {
 
-    private List<IReadWriteContainer<T>> readWriteContainers;
+    private List<IModifiableContainer<T>> readWriteContainers;
     private IContainerTransaction<T> activeTransaction;
 
-    public CombiningReadWriteContainer(List<IReadWriteContainer<T>> iReadWriteContainers) {
-        super(new ArrayList<>(iReadWriteContainers));
-        this.readWriteContainers = iReadWriteContainers;
+    public CombiningModifiableContainer(List<IModifiableContainer<T>> iModifiableContainers) {
+        super(new ArrayList<>(iModifiableContainers));
+        this.readWriteContainers = iModifiableContainers;
     }
 
     /**
@@ -42,14 +42,14 @@ public class CombiningReadWriteContainer<T> extends CombiningReadOnlyContainer<T
         return false;
     }
 
-    public class CombiningContainerTransaction<T> extends CombiningReadOnlyContainer<T> implements IContainerTransaction<T>
+    public class CombiningContainerTransaction<T> extends CombiningContainer<T> implements IContainerTransaction<T>
     {
 
-        private final CombiningReadWriteContainer<T> readWriteContainer;
+        private final CombiningModifiableContainer<T> readWriteContainer;
         private final List<IContainerTransaction<T>> internalTransactionHandlers;
 
-        public CombiningContainerTransaction(final CombiningReadWriteContainer<T> readWriteContainer) {
-            super(readWriteContainer.readWriteContainers.stream().map(IReadWriteContainer::beginTransaction).collect(Collectors.toList()));
+        public CombiningContainerTransaction(final CombiningModifiableContainer<T> readWriteContainer) {
+            super(readWriteContainer.readWriteContainers.stream().map(IModifiableContainer::beginTransaction).collect(Collectors.toList()));
             this.readWriteContainer = readWriteContainer;
             this.internalTransactionHandlers = super.readOnlyContainers.stream().map(container -> (IContainerTransaction<T>) container).collect(Collectors.toList());
         }
@@ -67,7 +67,7 @@ public class CombiningReadWriteContainer<T> extends CombiningReadOnlyContainer<T
 
         /**
          * Attempts to commit the transaction.
-         * If this method is called on a not active transaction, indicated by {@link IReadWriteContainer#isActiveTransaction(IContainerTransaction)}
+         * If this method is called on a not active transaction, indicated by {@link IModifiableContainer#isActiveTransaction(IContainerTransaction)}
          * being false, then an exception is thrown.
          *
          * @throws TransactionNotValidException When this transaction is not the active transaction.
@@ -114,7 +114,7 @@ public class CombiningReadWriteContainer<T> extends CombiningReadOnlyContainer<T
          * @return The container.
          */
         @Override
-        public IReadWriteContainer<T> getContainer() {
+        public IModifiableContainer<T> getContainer() {
             return readWriteContainer;
         }
     }

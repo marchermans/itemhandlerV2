@@ -1,21 +1,21 @@
 package net.minecraftforge.container;
 
 import net.minecraft.util.Tuple;
-import net.minecraftforge.container.api.IReadOnlyContainer;
+import net.minecraftforge.container.api.IContainer;
 
 import java.util.List;
 
-public class CombiningReadOnlyContainer<T> implements IReadOnlyContainer<T> {
+public class CombiningContainer<T> implements IContainer<T> {
 
-    protected final List<IReadOnlyContainer<T>> readOnlyContainers;
+    protected final List<IContainer<T>> readOnlyContainers;
 
-    public CombiningReadOnlyContainer(final List<IReadOnlyContainer<T>> readOnlyContainers) {
+    public CombiningContainer(final List<IContainer<T>> readOnlyContainers) {
         this.readOnlyContainers = readOnlyContainers;
     }
 
     @Override
     public int getContainerSize() {
-        return readOnlyContainers.stream().mapToInt(IReadOnlyContainer::getContainerSize).sum();
+        return readOnlyContainers.stream().mapToInt(IContainer::getContainerSize).sum();
     }
 
     @Override

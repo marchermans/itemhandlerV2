@@ -1,19 +1,19 @@
 package net.minecraftforge.container;
 
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.container.api.IReadOnlyContainer;
+import net.minecraftforge.container.api.IContainer;
 import net.minecraftforge.util.ListWithFixedSize;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
 /**
- * An abstract implementation of the {@link IReadOnlyContainer} interface.
+ * An abstract implementation of the {@link IContainer} interface.
  * Uses a {@link ListWithFixedSize} as backing storage.
  *
  * @param <T> The instance stored in this container.
  */
-public class ReadOnlyContainer<T> implements IReadOnlyContainer<T> {
+public class Container<T> implements IContainer<T> {
 
     /**
      * The underlying datastorage for the container.
@@ -25,7 +25,7 @@ public class ReadOnlyContainer<T> implements IReadOnlyContainer<T> {
      *
      * @param size The size of the container.
      */
-    public ReadOnlyContainer(final int size)
+    public Container(final int size)
     {
         this.container = new ListWithFixedSize<>(size);
     }
@@ -36,7 +36,7 @@ public class ReadOnlyContainer<T> implements IReadOnlyContainer<T> {
      *
      * @param container The container.
      */
-    public ReadOnlyContainer(final T... container) {
+    public Container(final T... container) {
         this.container = new ListWithFixedSize<>(container);
     }
 
@@ -46,7 +46,7 @@ public class ReadOnlyContainer<T> implements IReadOnlyContainer<T> {
      *
      * @param iterable The collection to base this container of.
      */
-    public ReadOnlyContainer(final Collection<T> iterable) {
+    public Container(final Collection<T> iterable) {
         this.container = new ListWithFixedSize<>(iterable);
     }
 

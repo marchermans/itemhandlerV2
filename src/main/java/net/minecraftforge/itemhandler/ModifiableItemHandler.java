@@ -2,10 +2,9 @@ package net.minecraftforge.itemhandler;
 
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.container.ContainerTransactionOperationResult;
-import net.minecraftforge.container.ReadOnlyContainer;
 import net.minecraftforge.container.api.*;
 import net.minecraftforge.itemhandler.api.IItemHandlerTransaction;
-import net.minecraftforge.itemhandler.api.IReadWriteItemHandler;
+import net.minecraftforge.itemhandler.api.IModifiableItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.util.ListWithFixedSize;
 
@@ -13,18 +12,18 @@ import java.util.Collection;
 import java.util.function.Function;
 
 /**
- * A default implementation of the {@link IReadWriteItemHandler} interface.
+ * A default implementation of the {@link IModifiableItemHandler} interface.
  * Comes with a default {@link IItemHandlerTransaction} that allows modifications to all slots.
  *
  * If a different behaviour is required during transactions, extend {@link ItemHandlerTransaction}
  * and pass a {@link Function} to create your transaction implementation when required.
  */
-public class ReadWriteItemHandler extends ReadOnlyItemHandler implements IReadWriteItemHandler {
+public class ModifiableItemHandler extends ItemHandler implements IModifiableItemHandler {
 
     /**
      * The callback function that supplies the handler with the relevant transactions.
      */
-    private final Function<ReadWriteItemHandler, ItemHandlerTransaction> transactionSupplier;
+    private final Function<ModifiableItemHandler, ItemHandlerTransaction> transactionSupplier;
 
     /**
      * The current transaction.
@@ -37,7 +36,7 @@ public class ReadWriteItemHandler extends ReadOnlyItemHandler implements IReadWr
      *
      * @param size The size of the container.
      */
-    public ReadWriteItemHandler(int size) {
+    public ModifiableItemHandler(int size) {
         super(size);
         this.transactionSupplier = ItemHandlerTransaction::new;
     }
@@ -48,7 +47,7 @@ public class ReadWriteItemHandler extends ReadOnlyItemHandler implements IReadWr
      *
      * @param iterable The iterable.
      */
-    public ReadWriteItemHandler(ItemStack... iterable) {
+    public ModifiableItemHandler(ItemStack... iterable) {
         super(iterable);
         this.transactionSupplier = ItemHandlerTransaction::new;
     }
@@ -59,7 +58,7 @@ public class ReadWriteItemHandler extends ReadOnlyItemHandler implements IReadWr
      *
      * @param iterable The iterable.
      */
-    public ReadWriteItemHandler(Collection<ItemStack> iterable) {
+    public ModifiableItemHandler(Collection<ItemStack> iterable) {
         super(iterable);
         this.transactionSupplier = ItemHandlerTransaction::new;
     }
@@ -72,7 +71,7 @@ public class ReadWriteItemHandler extends ReadOnlyItemHandler implements IReadWr
      * @param transactionSupplier The supplier function to generate new transactions.
      * @param size The size of the handler.
      */
-    public ReadWriteItemHandler(Function<ReadWriteItemHandler, ItemHandlerTransaction> transactionSupplier, int size) {
+    public ModifiableItemHandler(Function<ModifiableItemHandler, ItemHandlerTransaction> transactionSupplier, int size) {
         super(size);
         this.transactionSupplier = transactionSupplier;
     }
@@ -85,7 +84,7 @@ public class ReadWriteItemHandler extends ReadOnlyItemHandler implements IReadWr
      * @param transactionSupplier The supplier function to generate new transactions.
      * @param iterable The iterable.
      */
-    public ReadWriteItemHandler(Function<ReadWriteItemHandler, ItemHandlerTransaction> transactionSupplier, ItemStack... iterable) {
+    public ModifiableItemHandler(Function<ModifiableItemHandler, ItemHandlerTransaction> transactionSupplier, ItemStack... iterable) {
         super(iterable);
         this.transactionSupplier = transactionSupplier;
     }
@@ -98,7 +97,7 @@ public class ReadWriteItemHandler extends ReadOnlyItemHandler implements IReadWr
      * @param transactionSupplier The supplier function to generate new transactions.
      * @param iterable The iterable.
      */
-    public ReadWriteItemHandler(Function<ReadWriteItemHandler, ItemHandlerTransaction> transactionSupplier, Collection<ItemStack> iterable) {
+    public ModifiableItemHandler(Function<ModifiableItemHandler, ItemHandlerTransaction> transactionSupplier, Collection<ItemStack> iterable) {
         super(iterable);
         this.transactionSupplier = transactionSupplier;
     }
@@ -117,16 +116,16 @@ public class ReadWriteItemHandler extends ReadOnlyItemHandler implements IReadWr
     /**
      * Base implementation of the {@link IItemHandlerTransaction}.
      *
-     * This is a internal class of {@link ReadWriteItemHandler} so that the underlying datastorage arrays
+     * This is a internal class of {@link ModifiableItemHandler} so that the underlying datastorage arrays
      * are accessible for the class, while not being accessible on the public api surface.
      *
      * If anybody has a better solution for this. Feel free to comment and/or adapt.
      */
-    public class ItemHandlerTransaction extends ReadOnlyItemHandler implements IItemHandlerTransaction {
+    public class ItemHandlerTransaction extends ItemHandler implements IItemHandlerTransaction {
 
-        private final ReadWriteItemHandler itemHandler;
+        private final ModifiableItemHandler itemHandler;
 
-        public ItemHandlerTransaction(ReadWriteItemHandler itemHandler) {
+        public ItemHandlerTransaction(ModifiableItemHandler itemHandler) {
             super(itemHandler.container);
             this.itemHandler = itemHandler;
         }
@@ -197,7 +196,7 @@ public class ReadWriteItemHandler extends ReadOnlyItemHandler implements IReadWr
         }
 
         @Override
-        public IReadWriteContainer<ItemStack> getContainer() {
+        public IModifiableContainer<ItemStack> getContainer() {
             return itemHandler;
         }
     }
