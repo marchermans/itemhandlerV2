@@ -8,7 +8,7 @@ import net.minecraftforge.container.api.IReadWriteContainer;
  *
  * @param <T> The type stored in the container.
  */
-public abstract class AbstractReadWriteContainer<T> extends AbstractReadOnlyContainer<T> implements IReadWriteContainer<T> {
+public abstract class AbstractReadWriteContainer<T> extends ReadOnlyContainer<T> implements IReadWriteContainer<T> {
 
     /**
      * The current active transaction object.

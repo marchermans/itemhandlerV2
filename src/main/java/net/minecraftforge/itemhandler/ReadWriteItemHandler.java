@@ -85,8 +85,13 @@ public class ReadWriteItemHandler extends AbstractReadWriteContainer<ItemStack> 
     }
 
     @Override
-    protected ItemStack makeImmutable(ItemStack tInstance) {
-        return tInstance.copy();
+    public ItemStack getContentsOfSlot(int slot) {
+        final ItemStack superStack = super.getContentsOfSlot(slot);
+
+        if (superStack == null)
+            return ItemStack.EMPTY;
+
+        return superStack;
     }
 
     /**

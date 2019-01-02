@@ -26,9 +26,12 @@ public interface IReadOnlyContainer<T> extends Iterable<T>
     /**
      * Method to get the contents of the current slot.
      *
-     * The returned object is a cloned instance of the object in the container
-     * as such the returned object can be modified without modifying the
-     * contents of this container.
+     * <p/>
+     * IMPORTANT: This object MUST NOT be modified. This method is not for
+     * altering a containers contents. Any implementers who are able to detect
+     * modification through this method should throw an exception.
+     * <p/>
+     * SERIOUSLY: DO NOT MODIFY THE RETURNED OBJECT!
      *
      * @param slot The slot to get the contents from.
      * @return A cloned instance of the object in the slot, or null.
