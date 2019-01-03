@@ -3,10 +3,21 @@ package net.minecraftforge.interactable;
 import net.minecraft.util.Tuple;
 import net.minecraftforge.interactable.api.*;
 
-import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * A modifiable interactable that combines several interactables into one.
+ *
+ * This class can be used as long as the default value for the type E is null, as well as
+ * the equals check is exact.
+ *
+ * If this is not the case subclass this class and its transaction type.
+ * Override the {@link #buildNewTransaction()} and return your transaction instance with the
+ * correct methods overriden for the type E.
+ *
+ * @param <T> The type contained in the wrapped modifiable interactables.
+ */
 public class CombiningModifiableInteractable<T> extends CombiningInteractable<T> implements IModifiableInteractable<T> {
 
     private List<IModifiableInteractable<T>> readWriteInteractables;
@@ -54,16 +65,31 @@ public class CombiningModifiableInteractable<T> extends CombiningInteractable<T>
         return activeTransaction == transactionToCheck;
     }
 
-    public class CombiningInteractableTransaction<T> extends CombiningInteractable<T> implements IInteractableTransaction<T>
+    /**
+     * The default transaction for a combining interactable.
+     * It assumes that the default value for E is null, and that {@code E.equals(Object)} is a strict comparison.
+     *
+     * If E has a none default value (EG default value for E is not null) override the {@link #isInstancePresent(Object)} method.
+     *
+     * If E has a none strict equals behaviour (EG default equals behaviour, is instance check, or amount is not taken into account)
+     * then override the {@link #didInsertGetModified(E, E)} method and implement the comparison properly, watch for the negation in the
+     * contract!
+     *
+     * @param <E> The type that is being stored in the interactable on which this transaction operates.
+     *
+     * @see net.minecraftforge.interactable.itemhandler.CombiningModifiableItemHandler.CombiningItemHandlerTransaction
+     * @see net.minecraftforge.interactable.fluidhandler.CombiningModifiableFluidHandler.CombiningFluidHandlerTransaction
+     */
+    public class CombiningInteractableTransaction<E> extends CombiningInteractable<E> implements IInteractableTransaction<E>
     {
 
-        private final CombiningModifiableInteractable<T> readWriteInteractable;
-        private final List<IInteractableTransaction<T>> internalTransactionHandlers;
+        private final CombiningModifiableInteractable<E> readWriteInteractable;
+        private final List<IInteractableTransaction<E>> internalTransactionHandlers;
 
-        public CombiningInteractableTransaction(final CombiningModifiableInteractable<T> readWriteInteractable) {
+        public CombiningInteractableTransaction(final CombiningModifiableInteractable<E> readWriteInteractable) {
             super(readWriteInteractable.readWriteInteractables.stream().map(IModifiableInteractable::beginTransaction).collect(Collectors.toList()));
             this.readWriteInteractable = readWriteInteractable;
-            this.internalTransactionHandlers = super.readOnlyInteractables.stream().map(interactable -> (IInteractableTransaction<T>) interactable).collect(Collectors.toList());
+            this.internalTransactionHandlers = super.readOnlyInteractables.stream().map(interactable -> (IInteractableTransaction<E>) interactable).collect(Collectors.toList());
         }
 
         /**
@@ -95,7 +121,7 @@ public class CombiningModifiableInteractable<T> extends CombiningInteractable<T>
                     throw new TransactionNotValidException(readWriteInteractable, this);
             }
 
-            for (final IInteractableTransaction<T> internalTransactionHandler : internalTransactionHandlers) {
+            for (final IInteractableTransaction<E> internalTransactionHandler : internalTransactionHandlers) {
                 internalTransactionHandler.commit();
             }
         }
@@ -108,18 +134,18 @@ public class CombiningModifiableInteractable<T> extends CombiningInteractable<T>
          * @return An instance of {@link IInteractableOperationResult} that indicates success or failure, and provides results.
          */
         @Override
-        public IInteractableOperationResult<T> insert(final int slot, final T toInsert) {
+        public IInteractableOperationResult<E> insert(final int slot, final E toInsert) {
             final Tuple<Integer, Integer> targets = calculateInternalSlotInformationFromSlotIndex(slot);
             return this.internalTransactionHandlers.get(targets.getFirst()).insert(targets.getSecond(), toInsert);
         }
 
         @Override
-        public IInteractableOperationResult<T> insert(final T toInsert) {
+        public IInteractableOperationResult<E> insert(final E toInsert) {
             boolean wasConflicted = false;
-            T remainderToInsert = toInsert;
-            for (final IInteractableTransaction<T> internalTransaction :
+            E remainderToInsert = toInsert;
+            for (final IInteractableTransaction<E> internalTransaction :
                     this.internalTransactionHandlers) {
-                final IInteractableOperationResult<T> interactionResult = internalTransaction.insert(remainderToInsert);
+                final IInteractableOperationResult<E> interactionResult = internalTransaction.insert(remainderToInsert);
                 if (interactionResult.wasSuccessful())
                 {
                     remainderToInsert = interactionResult.getPrimary();
@@ -147,15 +173,15 @@ public class CombiningModifiableInteractable<T> extends CombiningInteractable<T>
         }
 
         /**
-         * This method checks if the given instance is present in terms of the semantics of the type T.
+         * This method checks if the given instance is present in terms of the semantics of the type E.
          * For example for ItemStacks this would say {@code instance != null && !instance.isEmpty()}.
          *
          * Default implementation does a nonnull check: {@code instance != null};
          *
          * @param instance The instance to check.
-         * @return True when for type T a valid object is present, false when not.
+         * @return True when for type E a valid object is present, false when not.
          */
-        protected boolean isInstancePresent(T instance)
+        protected boolean isInstancePresent(E instance)
         {
             return instance != null;
         }
@@ -177,7 +203,7 @@ public class CombiningModifiableInteractable<T> extends CombiningInteractable<T>
          * @param remainingToInsert The instance that is left over after all handlers have been tried.,
          * @return True when {@code toInsert != remainingToInsert} (exact check required), false when not.
          */
-        protected boolean didInsertGetModified(T toInsert, T remainingToInsert)
+        protected boolean didInsertGetModified(E toInsert, E remainingToInsert)
         {
             return !toInsert.equals(remainingToInsert);
         }
@@ -190,7 +216,7 @@ public class CombiningModifiableInteractable<T> extends CombiningInteractable<T>
          * @return An instance of {@link IInteractableOperationResult} that indicates success or failure, and provides results.
          */
         @Override
-        public IInteractableOperationResult<T> extract(final int slot, final int amount) {
+        public IInteractableOperationResult<E> extract(final int slot, final int amount) {
             final Tuple<Integer, Integer> targets = calculateInternalSlotInformationFromSlotIndex(slot);
             return this.internalTransactionHandlers.get(targets.getFirst()).extract(targets.getSecond(), amount);
         }
@@ -201,7 +227,7 @@ public class CombiningModifiableInteractable<T> extends CombiningInteractable<T>
          * @return The interactable.
          */
         @Override
-        public final IModifiableInteractable<T> getInteractable() {
+        public final IModifiableInteractable<E> getInteractable() {
             return readWriteInteractable;
         }
     }
