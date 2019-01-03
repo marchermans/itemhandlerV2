@@ -23,16 +23,15 @@ public interface IContainer<T> extends Iterable<T>
      *
      * @return The size of the container.
      */
-    int getSize();
+    int size();
 
     /**
      * Method to get the contents of the current slot.
-     *
-     * <p/>
+
      * IMPORTANT: This object MUST NOT be modified. This method is not for
      * altering a containers contents. Any implementers who are able to detect
      * modification through this method should throw an exception.
-     * <p/>
+     *
      * SERIOUSLY: DO NOT MODIFY THE RETURNED OBJECT!
      *
      * @param slot The slot to get the contents from.
@@ -49,7 +48,7 @@ public interface IContainer<T> extends Iterable<T>
     @Override
     default Spliterator<T> spliterator()
     {
-        return Spliterators.spliterator(iterator(), getSize(), Spliterator.SIZED | Spliterator.IMMUTABLE | Spliterator.ORDERED);
+        return Spliterators.spliterator(iterator(), size(), Spliterator.SIZED | Spliterator.IMMUTABLE | Spliterator.ORDERED);
     }
 
     /**
@@ -57,11 +56,10 @@ public interface IContainer<T> extends Iterable<T>
      * The contents are returned in slot order. Depending on the implementation
      * certain entries might be null.
      *
-     * <p/>
      * IMPORTANT: The objects in the stream MUST NOT be modified. This method is not for
      * altering a containers contents. Any implementers who are able to detect
      * modification through this method should throw an exception.
-     * <p/>
+     *
      * SERIOUSLY: DO NOT MODIFY THE OBJECTS IN THE STREAM!
      *
      * @return A stream with the contents of this container.
@@ -76,11 +74,10 @@ public interface IContainer<T> extends Iterable<T>
      * The contents are returned in slot order. Depending on the implementation
      * certain entries might be null.
      *
-     * <p/>
      * IMPORTANT: The objects in the stream MUST NOT be modified. This method is not for
      * altering a containers contents. Any implementers who are able to detect
      * modification through this method should throw an exception.
-     * <p/>
+     *
      * SERIOUSLY: DO NOT MODIFY THE OBJECTS IN THE STREAM!
      *
      * @return A stream with the contents of this container.

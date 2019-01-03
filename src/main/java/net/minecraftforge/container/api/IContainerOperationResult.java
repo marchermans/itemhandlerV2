@@ -53,6 +53,13 @@ public interface IContainerOperationResult<T> {
          * In general this means that the operation is generally possible with the slot / transaction, yet
          * it can not be performed right now, because the current state of the transaction is conflicting
          * with the the operation. (Stack and or Fluids are not mergeable.)
+         *
+         * This is also returned if a slotless insertion was performed and the object was partially inserted,
+         * yet a different slot returned conflicted during processing.
+         *
+         * In that case the {@link IContainerOperationResult#getPrimary()} method will contain the remainder,
+         * and this state indicates that a partial insertion was successful, yet without modification of slots
+         * no more insertion into the container is possible.
          */
         CONFLICTING,
 
@@ -70,18 +77,18 @@ public interface IContainerOperationResult<T> {
          */
         INVALID;
 
-        boolean isSuccess(){
+        public boolean isSuccess(){
             return this == SUCCESS;
         }
 
-        boolean isFailure(){
+        public boolean isFailure(){
             return this == FAILURE;
         }
 
-        boolean isInvalid(){
+        public boolean isInvalid(){
             return this == INVALID;
         }
 
-        boolean isConflicting() { return this == CONFLICTING; }
+        public boolean isConflicting() { return this == CONFLICTING; }
     }
 }

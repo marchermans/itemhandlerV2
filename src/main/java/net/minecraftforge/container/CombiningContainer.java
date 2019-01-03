@@ -7,37 +7,46 @@ import java.util.List;
 
 public class CombiningContainer<T> implements IContainer<T> {
 
-    protected final List<IContainer<T>> readOnlyContainers;
+    protected final List<? extends IContainer<T>> readOnlyContainers;
 
-    public CombiningContainer(final List<IContainer<T>> readOnlyContainers) {
+    public CombiningContainer(final List<? extends IContainer<T>> readOnlyContainers) {
         this.readOnlyContainers = readOnlyContainers;
     }
 
     @Override
-    public int getSize() {
-        return readOnlyContainers.stream().mapToInt(IContainer::getSize).sum();
+    public int size() {
+        int sum = 0;
+
+        for (final IContainer<T> container :
+                this.readOnlyContainers) {
+            sum += container.size();
+        }
+
+        return sum;
     }
 
     @Override
-    public T get(int slot) {
+    public T get(final int slot) {
         final Tuple<Integer, Integer> targets = calculateInternalSlotInformationFromSlotIndex(slot);
 
         return this.readOnlyContainers.get(targets.getFirst()).get(targets.getSecond());
     }
 
-    protected Tuple<Integer, Integer> calculateInternalSlotInformationFromSlotIndex(int slotIndex)
+    protected Tuple<Integer, Integer> calculateInternalSlotInformationFromSlotIndex(final int slotIndex)
     {
-        if (slotIndex < 0 || slotIndex >= getSize())
-            throw new IllegalArgumentException(String.format("Slot is not within range: 0-%d", getSize()));
+        int workingIndex = slotIndex;
+        if (workingIndex < 0 || workingIndex >= size())
+            throw new IllegalArgumentException(String.format("Slot is not within range: 0-%d", size()));
 
 
         for (int i = 0; i < readOnlyContainers.size(); i++) {
-            if (slotIndex < readOnlyContainers.get(i).getSize())
-                return new Tuple<>(i, slotIndex);
+            final int containerSize = readOnlyContainers.get(i).size();
+            if (workingIndex < containerSize)
+                return new Tuple<>(i, workingIndex);
 
-            slotIndex -= readOnlyContainers.get(i).getSize();
+            workingIndex -= containerSize;
         }
 
-        throw new IllegalArgumentException(String.format("Slot is not within range: 0-%d", getSize()));
+        throw new IllegalArgumentException(String.format("Slot is not within range: 0-%d", size()));
     }
 }

@@ -134,7 +134,7 @@ public class ModifiableFluidHandler extends FluidHandler implements IModifiableF
         @Override
         public IContainerOperationResult<FluidStack> insert(int slot, FluidStack toInsert) {
             //Null stacks can not be inserted by default. They are an invalid call to this method.
-            if (toInsert == null || slot < 0 || slot >= getSize())
+            if (toInsert == null || slot < 0 || slot >= size())
                 return ContainerOperationResult.invalid();
 
             final FluidStack stack = get(slot);
@@ -159,9 +159,39 @@ public class ModifiableFluidHandler extends FluidHandler implements IModifiableF
         }
 
         @Override
+        public IContainerOperationResult<FluidStack> insert(FluidStack toInsert) {
+            //Inserting an empty stack is invalid.
+            if (toInsert == null)
+                return ContainerOperationResult.invalid();
+
+            boolean wasConflicted = false;
+            FluidStack workingStack = toInsert.copy();
+            for (int i = 0; i < size(); i++) {
+                final IContainerOperationResult<FluidStack> insertionAttemptResult = this.insert(i, workingStack);
+                if (insertionAttemptResult.wasSuccessful()) {
+                    workingStack = insertionAttemptResult.getPrimary();
+                } else if (insertionAttemptResult.getStatus().isConflicting())
+                {
+                    wasConflicted = true;
+                }
+
+                if (workingStack == null)
+                    return ContainerOperationResult.success(null, null);
+            }
+
+            if (wasConflicted)
+                return ContainerOperationResult.conflicting();
+
+            if (workingStack.amount == toInsert.amount)
+                return ContainerOperationResult.failed();
+
+            return ContainerOperationResult.success(workingStack, null);
+        }
+
+        @Override
         public IContainerOperationResult<FluidStack> extract(int slot, int amount) {
             //Extracting <= 0 is invalid by default for this method.
-            if (amount <= 0 || slot < 0 || slot >= getSize())
+            if (amount <= 0 || slot < 0 || slot >= size())
                 return ContainerOperationResult.invalid();
 
             final FluidStack stack = get(slot);

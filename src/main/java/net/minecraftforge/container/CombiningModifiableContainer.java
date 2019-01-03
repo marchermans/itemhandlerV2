@@ -3,7 +3,6 @@ package net.minecraftforge.container;
 import net.minecraft.util.Tuple;
 import net.minecraftforge.container.api.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -13,7 +12,7 @@ public class CombiningModifiableContainer<T> extends CombiningContainer<T> imple
     private IContainerTransaction<T> activeTransaction;
 
     public CombiningModifiableContainer(List<IModifiableContainer<T>> iModifiableContainers) {
-        super(new ArrayList<>(iModifiableContainers));
+        super(iModifiableContainers);
         this.readWriteContainers = iModifiableContainers;
     }
 
@@ -28,7 +27,8 @@ public class CombiningModifiableContainer<T> extends CombiningContainer<T> imple
      */
     @Override
     public IContainerTransaction<T> beginTransaction() {
-        return null;
+        this.activeTransaction = new CombiningContainerTransaction<>(this);
+        return activeTransaction;
     }
 
     /**
@@ -39,7 +39,7 @@ public class CombiningModifiableContainer<T> extends CombiningContainer<T> imple
      */
     @Override
     public boolean isActiveTransaction(IContainerTransaction<T> transactionToCheck) {
-        return false;
+        return activeTransaction == transactionToCheck;
     }
 
     public class CombiningContainerTransaction<T> extends CombiningContainer<T> implements IContainerTransaction<T>
@@ -77,7 +77,13 @@ public class CombiningModifiableContainer<T> extends CombiningContainer<T> imple
             if (!readWriteContainer.isActiveTransaction(this))
                 throw new TransactionNotValidException(readWriteContainer, this);
 
-            for (IContainerTransaction<T> internalTransactionHandler : internalTransactionHandlers) {
+            //First verify that each transaction is still active:
+            for (int i = 0; i < this.internalTransactionHandlers.size(); i++) {
+                if (!readWriteContainer.readWriteContainers.get(i).isActiveTransaction(this.internalTransactionHandlers.get(i)))
+                    throw new TransactionNotValidException(readWriteContainer, this);
+            }
+
+            for (final IContainerTransaction<T> internalTransactionHandler : internalTransactionHandlers) {
                 internalTransactionHandler.commit();
             }
         }
@@ -90,9 +96,42 @@ public class CombiningModifiableContainer<T> extends CombiningContainer<T> imple
          * @return An instance of {@link IContainerOperationResult} that indicates success or failure, and provides results.
          */
         @Override
-        public IContainerOperationResult<T> insert(int slot, T toInsert) {
+        public IContainerOperationResult<T> insert(final int slot, final T toInsert) {
             final Tuple<Integer, Integer> targets = calculateInternalSlotInformationFromSlotIndex(slot);
             return this.internalTransactionHandlers.get(targets.getFirst()).insert(targets.getSecond(), toInsert);
+        }
+
+        @Override
+        public IContainerOperationResult<T> insert(final T toInsert) {
+            boolean wasConflicted = false;
+            T remainderToInsert = toInsert;
+            for (final IContainerTransaction<T> internalTransaction :
+                    this.internalTransactionHandlers) {
+                final IContainerOperationResult<T> interactionResult = internalTransaction.insert(remainderToInsert);
+                if (interactionResult.wasSuccessful())
+                {
+                    remainderToInsert = interactionResult.getPrimary();
+                }
+                else if (interactionResult.getStatus().isConflicting())
+                {
+                    wasConflicted = true;
+                    if (interactionResult.getPrimary() != null)
+                    {
+                        remainderToInsert = interactionResult.getPrimary();
+                    }
+                }
+
+                if (remainderToInsert == null)
+                    return ContainerOperationResult.success(null, null);
+            }
+
+            if (toInsert.equals(remainderToInsert))
+                return ContainerOperationResult.failed();
+
+            if (wasConflicted)
+                return ContainerOperationResult.conflicting(remainderToInsert);
+
+            return ContainerOperationResult.success(remainderToInsert, null);
         }
 
         /**
@@ -103,7 +142,7 @@ public class CombiningModifiableContainer<T> extends CombiningContainer<T> imple
          * @return An instance of {@link IContainerOperationResult} that indicates success or failure, and provides results.
          */
         @Override
-        public IContainerOperationResult<T> extract(int slot, int amount) {
+        public IContainerOperationResult<T> extract(final int slot, final int amount) {
             final Tuple<Integer, Integer> targets = calculateInternalSlotInformationFromSlotIndex(slot);
             return this.internalTransactionHandlers.get(targets.getFirst()).extract(targets.getSecond(), amount);
         }

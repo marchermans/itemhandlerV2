@@ -35,7 +35,7 @@ public class ContainerIterator<T> implements Iterator<T> {
     @Override
     public boolean hasNext()
     {
-        return index < container.getSize();
+        return index < container.size();
     }
 
     @Override

@@ -59,6 +59,18 @@ public class ContainerOperationResult<T> implements IContainerOperationResult<T>
     }
 
     /**
+     * Creates a new operation result with a conflicting status.
+     *
+     * @param <T> The type of the operation.
+     *
+     * @return An instance of {@link ContainerOperationResult} indicating a conflicting operation.
+     */
+    public static <T> IContainerOperationResult<T> conflicting(final T primary)
+    {
+        return new ContainerOperationResult<>(primary, null, Status.CONFLICTING);
+    }
+
+    /**
      * The primary object. Might be null depending on the status in {@link #status}
      *
      * @see IContainerOperationResult.Status

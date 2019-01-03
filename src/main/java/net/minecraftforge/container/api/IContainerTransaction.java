@@ -47,7 +47,7 @@ public interface IContainerTransaction<T> extends IContainer<T> {
      */
     default IContainerOperationResult<T> insertIntoFirstMatching(Predicate<T> matchingPredicate, T toInsert)
     {
-        final OptionalInt optionalSlotIndex = IntStream.range(0, getSize())
+        final OptionalInt optionalSlotIndex = IntStream.range(0, size())
                 .filter(slotIndex -> matchingPredicate.test(get(slotIndex)))
                 .findFirst();
 
@@ -56,6 +56,15 @@ public interface IContainerTransaction<T> extends IContainer<T> {
 
         return ContainerOperationResult.failed();
     }
+
+    /**
+     * Attempts to insert the given instance into this container. Splitting if required.
+     *
+     * @param toInsert The instance to insert.
+     *
+     * @return An instance of {@link IContainerOperationResult} that indicates success or failure, and provides results.
+     */
+    IContainerOperationResult<T> insert(T toInsert);
 
     /**
      * Attempts to extract a given amount from the slot of this container.

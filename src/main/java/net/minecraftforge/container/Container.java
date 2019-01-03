@@ -51,7 +51,7 @@ public class Container<T> implements IContainer<T> {
     }
 
     @Override
-    public int getSize() {
+    public int size() {
         return container.size();
     }
 

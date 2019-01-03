@@ -134,7 +134,7 @@ public class ModifiableEnergyHandler extends EnergyHandler implements IModifiabl
         @Override
         public IContainerOperationResult<Integer> insert(int slot, Integer toInsert) {
             //Negative or 0 power can not be inserted. They are an invalid call to this method.
-            if (toInsert <= 0 || slot < 0 || slot >= getSize())
+            if (toInsert <= 0 || slot < 0 || slot >= size())
                 return ContainerOperationResult.invalid();
             
             final Integer current = get(slot);
@@ -142,13 +142,43 @@ public class ModifiableEnergyHandler extends EnergyHandler implements IModifiabl
             
             this.container.set(slot, newMax);
             
-            return ContainerOperationResult.success(toInsert, current);
+            return ContainerOperationResult.success(0, current);
+        }
+
+        @Override
+        public IContainerOperationResult<Integer> insert(Integer toInsert) {
+            //Inserting an empty stack is invalid.
+            if (toInsert <= 0)
+                return ContainerOperationResult.invalid();
+
+            boolean wasConflicted = false;
+            int workingCount = toInsert;
+            for (int i = 0; i < size(); i++) {
+                final IContainerOperationResult<Integer> insertionAttemptResult = this.insert(i, workingCount);
+                if (insertionAttemptResult.wasSuccessful()) {
+                    workingCount = insertionAttemptResult.getPrimary();
+                } else if (insertionAttemptResult.getStatus().isConflicting())
+                {
+                    wasConflicted = true;
+                }
+
+                if (workingCount <= 0)
+                    return ContainerOperationResult.success(null, null);
+            }
+
+            if (wasConflicted)
+                return ContainerOperationResult.conflicting();
+
+            if (workingCount == toInsert)
+                return ContainerOperationResult.failed();
+
+            return ContainerOperationResult.success(workingCount, null);
         }
 
         @Override
         public IContainerOperationResult<Integer> extract(int slot, int amount) {
             //Negative or 0 power can not be extracted. They are an invalid call to this method.
-            if (amount <= 0 || slot < 0 || slot >= getSize())
+            if (amount <= 0 || slot < 0 || slot >= size())
                 return ContainerOperationResult.invalid();
 
             final Integer current = get(slot);
