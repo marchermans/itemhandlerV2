@@ -1,5 +1,6 @@
 package net.minecraftforge.interactable;
 
+import com.google.common.collect.ImmutableList;
 import net.minecraftforge.interactable.api.IInteractable;
 import net.minecraftforge.util.ListWithFixedSize;
 
@@ -57,5 +58,10 @@ public class Interactable<T> implements IInteractable<T> {
     @Override
     public T get(final int slot) {
         return interactable.get(slot);
+    }
+
+    @Override
+    public ImmutableList<T> all() {
+        return ImmutableList.copyOf(interactable);
     }
 }

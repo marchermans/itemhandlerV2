@@ -1,18 +1,15 @@
 package net.minecraftforge.interactable.energyhandler;
 
+import net.minecraftforge.interactable.ModifiableInteractable;
 import net.minecraftforge.interactable.api.InteractableOperationResult;
 import net.minecraftforge.interactable.api.IInteractableTransaction;
 import net.minecraftforge.interactable.api.IInteractableOperationResult;
-import net.minecraftforge.interactable.api.IModifiableInteractable;
-import net.minecraftforge.interactable.api.TransactionNotValidException;
 import net.minecraftforge.interactable.energyhandler.api.IForgeEnergyHandlerTransaction;
 import net.minecraftforge.interactable.energyhandler.api.IModifiableForgeEnergyHandler;
-import net.minecraftforge.util.ListWithFixedSize;
 
 import java.util.Collection;
-import java.util.function.Function;
 
-public class ModifiableForgeEnergyHandler extends ForgeEnergyHandler implements IModifiableForgeEnergyHandler {
+public class ModifiableForgeEnergyHandler extends ModifiableInteractable<Integer> implements IModifiableForgeEnergyHandler {
 
     /**
      * The current transaction.
@@ -31,52 +28,18 @@ public class ModifiableForgeEnergyHandler extends ForgeEnergyHandler implements 
         super(iterable);
     }
 
-    @Override
-    public final IInteractableTransaction<Integer> beginTransaction() {
-        this.activeTransaction = buildNewTransaction();
-        return this.activeTransaction;
-    }
-
-    /**
-     * Method used to build a new transaction.
-     * Can be overriden by subclasses to return different transactions with different behaviours.
-     *
-     * @return The new transaction, about to become the active transaction.
-     */
     protected ForgeEnergyHandlerTransaction buildNewTransaction()
     {
         return new ForgeEnergyHandlerTransaction(this);
     }
 
-    @Override
-    public final boolean isActiveTransaction(IInteractableTransaction<Integer> transactionToCheck) {
-        return activeTransaction == transactionToCheck;
-    }
-
     /**
      * The default transaction implementation.
      */
-    public class ForgeEnergyHandlerTransaction extends ForgeEnergyHandler implements IForgeEnergyHandlerTransaction {
-
-        private final ModifiableForgeEnergyHandler energyHandler;
+    public class ForgeEnergyHandlerTransaction extends AbstractTransaction<Integer> implements IForgeEnergyHandlerTransaction {
 
         public ForgeEnergyHandlerTransaction(ModifiableForgeEnergyHandler energyHandler) {
-            super(energyHandler.interactable);
-            this.energyHandler = energyHandler;
-        }
-
-        @Override
-        public final void cancel() {
-            if (energyHandler.isActiveTransaction(this))
-                energyHandler.activeTransaction = null;
-        }
-
-        @Override
-        public final void commit() throws TransactionNotValidException {
-            if (!energyHandler.isActiveTransaction(this))
-                throw new TransactionNotValidException(energyHandler, this);
-
-            energyHandler.interactable = new ListWithFixedSize<>(this.interactable);
+            super(energyHandler);
         }
 
         @Override
@@ -89,6 +52,7 @@ public class ModifiableForgeEnergyHandler extends ForgeEnergyHandler implements 
             final Integer newMax = current + toInsert;
             
             this.interactable.set(slot, newMax);
+            super.onSlotInteracted(slot);
             
             return InteractableOperationResult.success(0, current);
         }
@@ -133,13 +97,9 @@ public class ModifiableForgeEnergyHandler extends ForgeEnergyHandler implements 
             final Integer newMin = Math.min(0, current - amount);
             
             this.interactable.set(slot, newMin);
+            super.onSlotInteracted(slot);
 
             return InteractableOperationResult.success(amount, newMin);
-        }
-
-        @Override
-        public final IModifiableInteractable<Integer> getInteractable() {
-            return this.energyHandler;
         }
     }
 }

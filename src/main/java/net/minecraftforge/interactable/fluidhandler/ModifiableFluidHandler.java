@@ -1,18 +1,16 @@
 package net.minecraftforge.interactable.fluidhandler;
 
+import net.minecraftforge.interactable.ModifiableInteractable;
 import net.minecraftforge.interactable.api.InteractableOperationResult;
 import net.minecraftforge.interactable.api.IInteractableTransaction;
 import net.minecraftforge.interactable.api.IInteractableOperationResult;
-import net.minecraftforge.interactable.api.IModifiableInteractable;
-import net.minecraftforge.interactable.api.TransactionNotValidException;
 import net.minecraftforge.interactable.fluidhandler.api.IFluidHandlerTransaction;
 import net.minecraftforge.interactable.fluidhandler.api.IModifiableFluidHandler;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.util.ListWithFixedSize;
 
 import java.util.Collection;
 
-public class ModifiableFluidHandler extends FluidHandler implements IModifiableFluidHandler {
+public class ModifiableFluidHandler extends ModifiableInteractable<FluidStack> implements IModifiableFluidHandler {
 
     /**
      * The current transaction.
@@ -49,12 +47,6 @@ public class ModifiableFluidHandler extends FluidHandler implements IModifiableF
         super(iterable);
     }
 
-    @Override
-    public final IInteractableTransaction<FluidStack> beginTransaction() {
-        this.activeTransaction = buildNewTransaction();
-        return activeTransaction;
-    }
-
     /**
      * Method used to build a new transaction.
      * Can be overriden by subclasses to return different transactions with different behaviours.
@@ -66,32 +58,10 @@ public class ModifiableFluidHandler extends FluidHandler implements IModifiableF
         return new FluidHandlerTransaction(this);
     }
 
-    @Override
-    public boolean isActiveTransaction(IInteractableTransaction<FluidStack> transactionToCheck) {
-        return activeTransaction == transactionToCheck;
-    }
-
-    public class FluidHandlerTransaction extends FluidHandler implements IFluidHandlerTransaction
+    public class FluidHandlerTransaction extends AbstractTransaction<FluidStack> implements IFluidHandlerTransaction
     {
-        private final ModifiableFluidHandler fluidHandler;
-
         public FluidHandlerTransaction(ModifiableFluidHandler fluidHandler) {
-            super(fluidHandler.interactable);
-            this.fluidHandler = fluidHandler;
-        }
-
-        @Override
-        public final void cancel() {
-            if (fluidHandler.isActiveTransaction(this))
-                fluidHandler.activeTransaction = null;
-        }
-
-        @Override
-        public final void commit() throws TransactionNotValidException {
-            if (!fluidHandler.isActiveTransaction(this))
-                throw new TransactionNotValidException(fluidHandler, this);
-
-            fluidHandler.interactable = new ListWithFixedSize<>(interactable);
+            super(fluidHandler);
         }
 
         @Override
@@ -117,6 +87,7 @@ public class ModifiableFluidHandler extends FluidHandler implements IModifiableF
                 primary = null;
 
             this.interactable.set(slot, insertedStack);
+            super.onSlotInteracted(slot);
 
             return InteractableOperationResult.success(primary, secondary);
         }
@@ -171,13 +142,9 @@ public class ModifiableFluidHandler extends FluidHandler implements IModifiableF
 
             //Clone the stack again since remaining is also a secondary output.
             this.interactable.set(slot, remaining != null ? remaining.copy() : null);
+            this.onSlotInteracted(slot);
 
             return InteractableOperationResult.success(extracted, remaining);
-        }
-
-        @Override
-        public final IModifiableInteractable<FluidStack> getInteractable() {
-            return fluidHandler;
         }
     }
 }

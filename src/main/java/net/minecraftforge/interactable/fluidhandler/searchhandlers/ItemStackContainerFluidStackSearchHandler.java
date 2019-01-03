@@ -1,32 +1,29 @@
-package loordgek.itemhandlerv2.filter;
+package net.minecraftforge.interactable.fluidhandler.searchhandlers;
 
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
+import net.minecraftforge.interactable.api.IInteractableSearchHandler;
 
-public class FluidFilter implements IStackFilter {
+public class ItemStackContainerFluidStackSearchHandler implements IInteractableSearchHandler<FluidStack> {
     private final FluidStack fluidStackToTest;
     private final MatchingStrategy matchingStrategy;
 
-    public FluidFilter(FluidStack fluidStackToTest, MatchingStrategy matchingStrategy) {
-        this.fluidStackToTest = fluidStackToTest;
+    public ItemStackContainerFluidStackSearchHandler(ItemStack itemStackToTest, MatchingStrategy matchingStrategy) {
+        this.fluidStackToTest = FluidUtil.getFluidContained(itemStackToTest);
         this.matchingStrategy = matchingStrategy;
     }
 
     @Override
-    public boolean test(ItemStack stack) {
-        FluidStack fluidStack = FluidUtil.getFluidContained(stack);
-        if (fluidStack != null){
+    public boolean test(FluidStack stack) {
+        if (stack != null){
             switch (this.matchingStrategy)
             {
                 case EXCEEDED:
-                    return fluidStack.isFluidEqual(fluidStackToTest) && fluidStack.amount <= fluidStackToTest.amount;
+                    return stack.isFluidEqual(fluidStackToTest) && fluidStackToTest.amount <= stack.amount;
 
                 case EXACT:
-                    return fluidStack.isFluidStackIdentical(fluidStackToTest);
-
-                default: // Should be impossible
-                    return false;
+                    return stack.isFluidStackIdentical(fluidStackToTest);
             }
         }
         return false;

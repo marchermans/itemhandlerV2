@@ -1,6 +1,7 @@
 package net.minecraftforge.interactable.itemhandler;
 
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.interactable.ModifiableInteractable;
 import net.minecraftforge.interactable.api.InteractableOperationResult;
 import net.minecraftforge.interactable.api.*;
 import net.minecraftforge.interactable.itemhandler.api.IItemHandlerTransaction;
@@ -17,7 +18,7 @@ import java.util.Collection;
  * If a different behaviour is required during transactions, extend {@link ItemHandlerTransaction}
  * and override the {@link #beginTransaction()} method.
  */
-public class ModifiableItemHandler extends ItemHandler implements IModifiableItemHandler {
+public class ModifiableItemHandler extends ModifiableInteractable<ItemStack> implements IModifiableItemHandler {
 
     /**
      * The current transaction.
@@ -54,12 +55,6 @@ public class ModifiableItemHandler extends ItemHandler implements IModifiableIte
         super(iterable);
     }
 
-    @Override
-    public final IInteractableTransaction<ItemStack> beginTransaction() {
-        this.activeTransaction = buildNewTransaction();
-        return activeTransaction;
-    }
-
     /**
      * Method used to build a new transaction.
      * Can be overriden by subclasses to return different transactions with different behaviours.
@@ -71,11 +66,6 @@ public class ModifiableItemHandler extends ItemHandler implements IModifiableIte
         return new ItemHandlerTransaction(this);
     }
 
-    @Override
-    public final boolean isActiveTransaction(IInteractableTransaction<ItemStack> transactionToCheck) {
-        return activeTransaction == transactionToCheck;
-    }
-
     /**
      * Base implementation of the {@link IItemHandlerTransaction}.
      *
@@ -84,27 +74,13 @@ public class ModifiableItemHandler extends ItemHandler implements IModifiableIte
      *
      * If anybody has a better solution for this. Feel free to comment and/or adapt.
      */
-    public class ItemHandlerTransaction extends ItemHandler implements IItemHandlerTransaction {
+    public class ItemHandlerTransaction extends AbstractTransaction<ItemStack> implements IItemHandlerTransaction {
 
         private final ModifiableItemHandler itemHandler;
 
         public ItemHandlerTransaction(ModifiableItemHandler itemHandler) {
-            super(itemHandler.interactable);
+            super(itemHandler);
             this.itemHandler = itemHandler;
-        }
-
-        @Override
-        public final void cancel() {
-            if (itemHandler.isActiveTransaction(this))
-                itemHandler.activeTransaction = null;
-        }
-
-        @Override
-        public final void commit() throws TransactionNotValidException {
-            if (!itemHandler.isActiveTransaction(this))
-                throw new TransactionNotValidException(itemHandler, this);
-
-            itemHandler.interactable = new ListWithFixedSize<>(interactable);
         }
 
         @Override
@@ -133,6 +109,7 @@ public class ModifiableItemHandler extends ItemHandler implements IModifiableIte
                 return InteractableOperationResult.failed();
 
             this.interactable.set(slot, insertedStack);
+            super.onSlotInteracted(slot);
 
             return InteractableOperationResult.success(leftOver, previouslyInSlot);
         }
@@ -192,6 +169,7 @@ public class ModifiableItemHandler extends ItemHandler implements IModifiableIte
 
             //Clone the stack again since remaining is also a secondary output.
             this.interactable.set(slot, remaining.copy());
+            super.onSlotInteracted(slot);
 
             return InteractableOperationResult.success(extracted, remaining);
         }

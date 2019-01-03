@@ -46,7 +46,7 @@ public interface IInteractableTransaction<T> extends IInteractable<T> {
      *
      * @return The result of {{@link #insert(int, Object)}} for the first matching slot.
      */
-    default IInteractableOperationResult<T> insertIntoFirstMatching(Predicate<T> matchingPredicate, T toInsert)
+    default IInteractableOperationResult<T> insertIntoFirstMatching(IInteractableSearchHandler<T> matchingPredicate, T toInsert)
     {
         final OptionalInt optionalSlotIndex = findFirstSlotMatching(matchingPredicate);
 
@@ -84,7 +84,7 @@ public interface IInteractableTransaction<T> extends IInteractable<T> {
      * @param checkPredicate The predicate to find the first slot matching with.
      * @return An instance of {@link IInteractableOperationResult} that indicates success or failure, and provides results.
      */
-    default IInteractableOperationResult<T> extractFirstMatching(Predicate<T> checkPredicate)
+    default IInteractableOperationResult<T> extractFirstMatching(IInteractableSearchHandler<T> checkPredicate)
     {
         return extractFirstMatching(checkPredicate, Integer.MAX_VALUE);
     }
@@ -97,7 +97,7 @@ public interface IInteractableTransaction<T> extends IInteractable<T> {
      * @param amount The amount to extract.
      * @return An instance of {@link IInteractableOperationResult} that indicates success or failure, and provides results.
      */
-    default IInteractableOperationResult<T> extractFirstMatching(Predicate<T> checkPredicate, int amount)
+    default IInteractableOperationResult<T> extractFirstMatching(IInteractableSearchHandler<T> checkPredicate, int amount)
     {
         final OptionalInt optionalSlotIndex = findFirstSlotMatching(checkPredicate);
 

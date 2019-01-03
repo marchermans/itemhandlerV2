@@ -1,5 +1,7 @@
 package net.minecraftforge.interactable.api;
 
+import com.google.common.collect.ImmutableList;
+
 import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.function.Predicate;
@@ -32,7 +34,7 @@ public interface IInteractable<T> extends Iterable<T>
      * Method to get the contents of the current slot.
 
      * IMPORTANT: This object MUST NOT be modified. This method is not for
-     * altering a containers contents. Any implementers who are able to detect
+     * altering a interactables contents. Any implementers who are able to detect
      * modification through this method should throw an exception.
      *
      * SERIOUSLY: DO NOT MODIFY THE RETURNED OBJECT!
@@ -42,16 +44,31 @@ public interface IInteractable<T> extends Iterable<T>
      */
     T get(final int slot);
 
+    /**
+     * An immutable representation of this inventory.
+     * Might contain nullables if T allows it.
+
+     * IMPORTANT: The objects contained in the list MUST NOT be modified. This method is not for
+     * altering a interactables contents. Any implementers who are able to detect
+     * modification through this method should throw an exception.
+     *
+     * SERIOUSLY: DO NOT MODIFY THE CONTAINED OBJECTS!
+     *
+     *
+     * @return
+     */
+    ImmutableList<T> all();
+
     @Override
     default Iterator<T> iterator()
     {
-        return new InteractableIterator<>(this);
+        return all().iterator();
     }
 
     @Override
     default Spliterator<T> spliterator()
     {
-        return Spliterators.spliterator(iterator(), size(), Spliterator.SIZED | Spliterator.IMMUTABLE | Spliterator.ORDERED);
+        return all().spliterator();
     }
 
     /**
@@ -60,7 +77,7 @@ public interface IInteractable<T> extends Iterable<T>
      * @param checkPredicate The predicate to check with.
      * @return An OptionalInt, possibly containing the first matching slot, or is empty if no slot is found.
      */
-    default OptionalInt findFirstSlotMatching(@Nonnull final Predicate<T> checkPredicate)
+    default OptionalInt findFirstSlotMatching(@Nonnull final IInteractableSearchHandler<T> checkPredicate)
     {
         return IntStream.range(0, size())
                 .filter(slotIndex -> checkPredicate.test(get(slotIndex)))
@@ -73,7 +90,7 @@ public interface IInteractable<T> extends Iterable<T>
      * certain entries might be null.
      *
      * IMPORTANT: The objects in the stream MUST NOT be modified. This method is not for
-     * altering a containers contents. Any implementers who are able to detect
+     * altering a interactables contents. Any implementers who are able to detect
      * modification through this method should throw an exception.
      *
      * SERIOUSLY: DO NOT MODIFY THE OBJECTS IN THE STREAM!
@@ -82,7 +99,7 @@ public interface IInteractable<T> extends Iterable<T>
      */
     default Stream<T> stream()
     {
-        return StreamSupport.stream(spliterator(), false);
+        return all().stream();
     }
 
     /**
@@ -91,7 +108,7 @@ public interface IInteractable<T> extends Iterable<T>
      * certain entries might be null.
      *
      * IMPORTANT: The objects in the stream MUST NOT be modified. This method is not for
-     * altering a containers contents. Any implementers who are able to detect
+     * altering a interactables contents. Any implementers who are able to detect
      * modification through this method should throw an exception.
      *
      * SERIOUSLY: DO NOT MODIFY THE OBJECTS IN THE STREAM!
@@ -100,6 +117,6 @@ public interface IInteractable<T> extends Iterable<T>
      */
     default Stream<T> parallelStream()
     {
-        return StreamSupport.stream(spliterator(), true);
+        return all().parallelStream();
     }
 }
