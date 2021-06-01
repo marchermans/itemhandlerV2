@@ -1,11 +1,11 @@
 package net.minecraftforge.interactable.energyhandler.api;
 
-import net.minecraftforge.interactable.api.IInteractableTransaction;
+import net.minecraftforge.interactable.api.ISlottedInteractableTransaction;
 
 /**
  * The default interactable transaction interface for ForgeEnergy.
  *
- * @see IInteractableTransaction
+ * @see ISlottedInteractableTransaction
  */
-public interface IForgeEnergyHandlerTransaction extends IInteractableTransaction<Integer>, IForgeEnergyHandler {
+public interface IForgeEnergyHandlerTransaction extends ISlottedInteractableTransaction<Integer, IForgeEnergyHandlerTransaction>, IForgeEnergyHandler {
 }

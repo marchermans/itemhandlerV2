@@ -5,6 +5,8 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.interactable.api.IInteractableSearchHandler;
 
+import java.util.Optional;
+
 public class FluidContainingItemStackSearchHandler implements IInteractableSearchHandler<ItemStack> {
     private final FluidStack fluidStackToTest;
     private final MatchingStrategy matchingStrategy;
@@ -16,15 +18,15 @@ public class FluidContainingItemStackSearchHandler implements IInteractableSearc
 
     @Override
     public boolean test(ItemStack stack) {
-        FluidStack fluidStack = FluidUtil.getFluidContained(stack);
-        if (fluidStack != null){
+        Optional<FluidStack> fluidStack = FluidUtil.getFluidContained(stack);
+        if (fluidStack.isPresent() && !fluidStack.get().isEmpty()){
             switch (this.matchingStrategy)
             {
                 case EXCEEDED:
-                    return fluidStack.isFluidEqual(fluidStackToTest) && fluidStack.amount <= fluidStackToTest.amount;
+                    return fluidStack.get().isFluidEqual(fluidStackToTest) && fluidStack.get().getAmount() <= fluidStackToTest.getAmount();
 
                 case EXACT:
-                    return fluidStack.isFluidStackIdentical(fluidStackToTest);
+                    return fluidStack.get().isFluidStackIdentical(fluidStackToTest);
             }
         }
         return false;

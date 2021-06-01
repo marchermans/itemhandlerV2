@@ -6,8 +6,8 @@ package net.minecraftforge.interactable.api;
 public class TransactionNotValidException extends Exception {
 
     //Exceptions can not be generic......
-    private final IModifiableInteractable<?> interactable;
-    private final IInteractableTransaction<?> failedTransaction;
+    private final IModifiableInteractable<?, ?>  interactable;
+    private final ISlottedInteractableTransaction<?, ?> failedTransaction;
 
     /**
      * Creates a new exception for the given interactable and transaction.
@@ -15,7 +15,7 @@ public class TransactionNotValidException extends Exception {
      * @param interactable The interactable.
      * @param failedTransaction The transaction.
      */
-    public TransactionNotValidException(final IModifiableInteractable<?> interactable, final IInteractableTransaction<?> failedTransaction) {
+    public TransactionNotValidException(final IModifiableSlottedInteractable<?, ?> interactable, final ISlottedInteractableTransaction<?, ?> failedTransaction) {
         super(String.format("Failed to commit transaction%s to interactable %s. It is not the active transaction.", failedTransaction, interactable));
         this.interactable = interactable;
         this.failedTransaction = failedTransaction;
@@ -26,7 +26,7 @@ public class TransactionNotValidException extends Exception {
      *
      * @return The interactable for which the transaction failed.
      */
-    public IModifiableInteractable<?> getInteractable() {
+    public IModifiableInteractable<?, ?> getInteractable() {
         return interactable;
     }
 
@@ -35,7 +35,7 @@ public class TransactionNotValidException extends Exception {
      *
      * @return The failed transaction.
      */
-    public IInteractableTransaction<?> getFailedTransaction() {
+    public ISlottedInteractableTransaction<?, ?> getFailedTransaction() {
         return failedTransaction;
     }
 }

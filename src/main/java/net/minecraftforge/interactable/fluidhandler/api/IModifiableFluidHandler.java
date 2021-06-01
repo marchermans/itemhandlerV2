@@ -1,13 +1,14 @@
 package net.minecraftforge.interactable.fluidhandler.api;
 
-import net.minecraftforge.interactable.api.IModifiableInteractable;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.interactable.api.IModifiableSlottedInteractable;
 
 /**
  * The default read write interactable interface for FluidStacks.
  *
- * @see IModifiableInteractable
+ * @see IModifiableSlottedInteractable
  * @see FluidStack
  */
-public interface IModifiableFluidHandler extends IModifiableInteractable<FluidStack> {
+public interface IModifiableFluidHandler extends IModifiableSlottedInteractable<FluidStack, IFluidHandlerTransaction>
+{
 }

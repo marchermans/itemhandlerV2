@@ -1,38 +1,41 @@
 package net.minecraftforge.interactable;
 
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.interactable.api.*;
+import net.minecraftforge.interactable.api.IInteractableSearchHandler;
+import net.minecraftforge.interactable.api.IModifiableSlottedInteractable;
+import net.minecraftforge.interactable.api.ISlottedInteractableTransaction;
+import net.minecraftforge.interactable.api.TransactionNotValidException;
+import net.minecraftforge.interactable.api.observer.IModifiableSlottedInteractableChangedHandler;
 import net.minecraftforge.interactable.api.observer.IObserverWatchDog;
-import net.minecraftforge.interactable.api.observer.ObserveableWatchDog;
+import net.minecraftforge.interactable.observer.ObserverWatchdog;
 import net.minecraftforge.util.ListWithFixedSize;
 
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Predicate;
 
 /**
  * Abstract modifiable interactable implementation that handles observables as well as the active transaction.
  *
- * @param <T> The type contained in the interactable.
+ * @param <E> The type contained in the interactable.
  */
-public abstract class ModifiableInteractable<T>  extends Interactable<T> implements IModifiableInteractable<T> {
-    private IInteractableTransaction<T> activeTransaction;
-    private Map<ResourceLocation, BiConsumer<IModifiableInteractable<T>, Set<Integer>>> observers = new HashMap<>();
+public abstract class ModifiableSlottedInteractable<E, T extends ISlottedInteractableTransaction<E, T>>  extends SlottedInteractable<E> implements IModifiableSlottedInteractable<E, T>
+{
+    private       T                                                                         activeTransaction;
+    private final Map<ResourceLocation, IModifiableSlottedInteractableChangedHandler<E, T>> modifiableObservers = new HashMap<>();
 
-    public ModifiableInteractable(int size) {
+    public ModifiableSlottedInteractable(int size) {
         super(size);
     }
 
-    public ModifiableInteractable(T... iterable) {
+    public ModifiableSlottedInteractable(E... iterable) {
         super(iterable);
     }
 
-    public ModifiableInteractable(Collection<T> iterable) {
+    public ModifiableSlottedInteractable(Collection<E> iterable) {
         super(iterable);
     }
 
     @Override
-    public final IInteractableTransaction<T> beginTransaction() {
+    public final T beginTransaction() {
         this.activeTransaction = buildNewTransaction();
         return activeTransaction;
     }
@@ -43,29 +46,31 @@ public abstract class ModifiableInteractable<T>  extends Interactable<T> impleme
      *
      * @return The new transaction, about to become the active transaction.
      */
-    protected abstract AbstractTransaction<T> buildNewTransaction();
+    protected abstract T buildNewTransaction();
 
     @Override
-    public final boolean isActiveTransaction(IInteractableTransaction<T> transactionToCheck) {
+    public final boolean isActiveTransaction(T transactionToCheck) {
         return activeTransaction == transactionToCheck;
     }
 
     @Override
-    public final IObserverWatchDog<T> openObserver(ResourceLocation id, BiConsumer<IModifiableInteractable<T>, Set<Integer>> callback) throws IllegalArgumentException {
-        if (observers.containsKey(id))
+    public IObserverWatchDog<E, ? extends IModifiableSlottedInteractable<E, T>> openObserver(
+      final ResourceLocation id, final IModifiableSlottedInteractableChangedHandler<E, T> callback) throws IllegalArgumentException
+    {
+        if (modifiableObservers.containsKey(id))
             throw new IllegalArgumentException(String.format("Observer with ID: %s is already registered.", id));
 
-        observers.put(id, callback);
+        modifiableObservers.put(id, callback);
 
-        return new ObserveableWatchDog<>(this, id, callback);
+        return new ObserverWatchdog<>(this, id);
     }
 
     @Override
     public final void closeObserver(ResourceLocation id) throws IllegalArgumentException {
-        if (!observers.containsKey(id))
+        if (!modifiableObservers.containsKey(id))
             throw new IllegalArgumentException(String.format("Observer with ID: %s is not registered", id));
 
-        observers.remove(id);
+        modifiableObservers.remove(id);
     }
 
     /**
@@ -77,33 +82,34 @@ public abstract class ModifiableInteractable<T>  extends Interactable<T> impleme
      *
      * @param <E> The type contained in the transaction.
      */
-    public static abstract class AbstractTransaction<E> extends Interactable<E> implements IInteractableTransaction<E>
+    @SuppressWarnings("unchecked")
+    public static abstract class AbstractSlottedTransaction<E, T extends ISlottedInteractableTransaction<E, T>> extends ModifiableSlottedInteractable<E, T> implements ISlottedInteractableTransaction<E, T>
     {
-        private final ModifiableInteractable<E> modifiableInteractable;
-        private final Set<Integer> modifiedSlots = new HashSet<>();
+        private final ModifiableSlottedInteractable<E, T> modifiableInteractable;
+        private final Set<Integer>                     modifiedSlots = new HashSet<>();
 
-        protected AbstractTransaction(ModifiableInteractable<E> modifiableInteractable) {
+        protected AbstractSlottedTransaction(ModifiableSlottedInteractable<E, T> modifiableInteractable) {
             super(modifiableInteractable.interactable);
             this.modifiableInteractable = modifiableInteractable;
         }
 
         @Override
         public final void cancel() {
-            if (modifiableInteractable.isActiveTransaction(this))
+            if (modifiableInteractable.isActiveTransaction((T) this))
                 modifiableInteractable.activeTransaction = null;
         }
 
         @Override
         public final void commit() throws TransactionNotValidException {
-            if (!modifiableInteractable.isActiveTransaction(this))
+            if (!modifiableInteractable.isActiveTransaction((T) this))
                 throw new TransactionNotValidException(modifiableInteractable, this);
 
             modifiableInteractable.interactable = new ListWithFixedSize<>(interactable);
 
             //Trigger observables.
-            for (final BiConsumer<IModifiableInteractable<E>, Set<Integer>> callback :
-                    modifiableInteractable.observers.values()) {
-                callback.accept(modifiableInteractable, modifiedSlots);
+            for (final IModifiableSlottedInteractableChangedHandler<E, T> callback :
+                    modifiableInteractable.modifiableObservers.values()) {
+                callback.onChanged(modifiableInteractable, modifiedSlots);
             }
 
             this.modifiedSlots.clear();
@@ -122,7 +128,8 @@ public abstract class ModifiableInteractable<T>  extends Interactable<T> impleme
         }
 
         @Override
-        public IModifiableInteractable<E> getInteractable() {
+        public IModifiableSlottedInteractable<E, T> getInteractable()
+        {
             return modifiableInteractable;
         }
     }

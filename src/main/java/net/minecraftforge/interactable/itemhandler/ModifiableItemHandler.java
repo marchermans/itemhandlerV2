@@ -1,13 +1,15 @@
 package net.minecraftforge.interactable.itemhandler;
 
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.interactable.ModifiableInteractable;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.interactable.ModifiableSlottedInteractable;
 import net.minecraftforge.interactable.api.InteractableOperationResult;
 import net.minecraftforge.interactable.api.*;
+import net.minecraftforge.interactable.fluidhandler.api.IFluidHandlerTransaction;
+import net.minecraftforge.interactable.fluidhandler.api.IModifiableFluidHandler;
 import net.minecraftforge.interactable.itemhandler.api.IItemHandlerTransaction;
 import net.minecraftforge.interactable.itemhandler.api.IModifiableItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.util.ListWithFixedSize;
 
 import java.util.Collection;
 
@@ -15,15 +17,11 @@ import java.util.Collection;
  * A default implementation of the {@link IModifiableItemHandler} interface.
  * Comes with a default {@link IItemHandlerTransaction} that allows modifications to all slots.
  *
- * If a different behaviour is required during transactions, extend {@link ItemHandlerTransaction}
+ * If a different behaviour is required during transactions, extend {@link ItemHandlerSlottedTransaction}
  * and override the {@link #beginTransaction()} method.
  */
-public class ModifiableItemHandler extends ModifiableInteractable<ItemStack> implements IModifiableItemHandler {
-
-    /**
-     * The current transaction.
-     */
-    private IInteractableTransaction<ItemStack> activeTransaction;
+public class ModifiableItemHandler extends ModifiableSlottedInteractable<ItemStack, IItemHandlerTransaction> implements IModifiableItemHandler
+{
 
     /**
      * Creates a default handler with the given size.
@@ -61,9 +59,9 @@ public class ModifiableItemHandler extends ModifiableInteractable<ItemStack> imp
      *
      * @return The new transaction, about to become the active transaction.
      */
-    protected ItemHandlerTransaction buildNewTransaction()
+    protected ItemHandlerSlottedTransaction buildNewTransaction()
     {
-        return new ItemHandlerTransaction(this);
+        return new ItemHandlerSlottedTransaction(this);
     }
 
     /**
@@ -74,13 +72,16 @@ public class ModifiableItemHandler extends ModifiableInteractable<ItemStack> imp
      *
      * If anybody has a better solution for this. Feel free to comment and/or adapt.
      */
-    public class ItemHandlerTransaction extends AbstractTransaction<ItemStack> implements IItemHandlerTransaction {
-
-        private final ModifiableItemHandler itemHandler;
-
-        public ItemHandlerTransaction(ModifiableItemHandler itemHandler) {
+    public static class ItemHandlerSlottedTransaction extends AbstractSlottedTransaction<ItemStack, IItemHandlerTransaction> implements IItemHandlerTransaction
+    {
+        public ItemHandlerSlottedTransaction(ModifiableItemHandler itemHandler) {
             super(itemHandler);
-            this.itemHandler = itemHandler;
+        }
+
+        public ItemHandlerSlottedTransaction(final ItemHandlerSlottedTransaction slottedTransaction)
+        {
+            super(slottedTransaction);
+
         }
 
         @Override
@@ -175,8 +176,9 @@ public class ModifiableItemHandler extends ModifiableInteractable<ItemStack> imp
         }
 
         @Override
-        public final IModifiableInteractable<ItemStack> getInteractable() {
-            return itemHandler;
+        protected IItemHandlerTransaction buildNewTransaction()
+        {
+            return new ItemHandlerSlottedTransaction(this);
         }
     }
 }

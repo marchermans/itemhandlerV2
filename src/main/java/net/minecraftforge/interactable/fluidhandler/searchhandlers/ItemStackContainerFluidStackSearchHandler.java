@@ -5,9 +5,12 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.interactable.api.IInteractableSearchHandler;
 
+import java.util.Optional;
+
 public class ItemStackContainerFluidStackSearchHandler implements IInteractableSearchHandler<FluidStack> {
-    private final FluidStack fluidStackToTest;
-    private final MatchingStrategy matchingStrategy;
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    private final Optional<FluidStack> fluidStackToTest;
+    private final MatchingStrategy     matchingStrategy;
 
     public ItemStackContainerFluidStackSearchHandler(ItemStack itemStackToTest, MatchingStrategy matchingStrategy) {
         this.fluidStackToTest = FluidUtil.getFluidContained(itemStackToTest);
@@ -16,17 +19,20 @@ public class ItemStackContainerFluidStackSearchHandler implements IInteractableS
 
     @Override
     public boolean test(FluidStack stack) {
-        if (stack != null){
+        if (stack != null && !stack.isEmpty()){
+            if (!fluidStackToTest.isPresent())
+                return false;
+
             switch (this.matchingStrategy)
             {
                 case EXCEEDED:
-                    return stack.isFluidEqual(fluidStackToTest) && fluidStackToTest.amount <= stack.amount;
+                    return stack.isFluidEqual(fluidStackToTest.get()) && fluidStackToTest.get().getAmount() <= stack.getAmount();
 
                 case EXACT:
-                    return stack.isFluidStackIdentical(fluidStackToTest);
+                    return stack.isFluidStackIdentical(fluidStackToTest.get());
             }
         }
-        return false;
+        return !fluidStackToTest.isPresent();
     }
 
     public enum MatchingStrategy {

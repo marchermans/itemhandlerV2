@@ -1,20 +1,14 @@
 package net.minecraftforge.interactable.energyhandler;
 
-import net.minecraftforge.interactable.ModifiableInteractable;
-import net.minecraftforge.interactable.api.InteractableOperationResult;
-import net.minecraftforge.interactable.api.IInteractableTransaction;
+import net.minecraftforge.interactable.ModifiableSlottedInteractable;
 import net.minecraftforge.interactable.api.IInteractableOperationResult;
+import net.minecraftforge.interactable.api.InteractableOperationResult;
 import net.minecraftforge.interactable.energyhandler.api.IForgeEnergyHandlerTransaction;
 import net.minecraftforge.interactable.energyhandler.api.IModifiableForgeEnergyHandler;
 
 import java.util.Collection;
 
-public class ModifiableForgeEnergyHandler extends ModifiableInteractable<Integer> implements IModifiableForgeEnergyHandler {
-
-    /**
-     * The current transaction.
-     */
-    private IInteractableTransaction<Integer> activeTransaction;
+public class ModifiableForgeEnergyHandler extends ModifiableSlottedInteractable<Integer, IForgeEnergyHandlerTransaction> implements IModifiableForgeEnergyHandler {
 
     public ModifiableForgeEnergyHandler(int size) {
         super(size);
@@ -28,17 +22,21 @@ public class ModifiableForgeEnergyHandler extends ModifiableInteractable<Integer
         super(iterable);
     }
 
-    protected ForgeEnergyHandlerTransaction buildNewTransaction()
+    protected ForgeEnergyHandlerSlottedTransaction buildNewTransaction()
     {
-        return new ForgeEnergyHandlerTransaction(this);
+        return new ForgeEnergyHandlerSlottedTransaction(this);
     }
 
     /**
      * The default transaction implementation.
      */
-    public class ForgeEnergyHandlerTransaction extends AbstractTransaction<Integer> implements IForgeEnergyHandlerTransaction {
+    public static class ForgeEnergyHandlerSlottedTransaction extends AbstractSlottedTransaction<Integer, IForgeEnergyHandlerTransaction> implements IForgeEnergyHandlerTransaction {
 
-        public ForgeEnergyHandlerTransaction(ModifiableForgeEnergyHandler energyHandler) {
+        public ForgeEnergyHandlerSlottedTransaction(ModifiableForgeEnergyHandler energyHandler) {
+            super(energyHandler);
+        }
+
+        public ForgeEnergyHandlerSlottedTransaction(ForgeEnergyHandlerSlottedTransaction energyHandler) {
             super(energyHandler);
         }
 
@@ -100,6 +98,12 @@ public class ModifiableForgeEnergyHandler extends ModifiableInteractable<Integer
             super.onSlotInteracted(slot);
 
             return InteractableOperationResult.success(amount, newMin);
+        }
+
+        @Override
+        protected ForgeEnergyHandlerSlottedTransaction buildNewTransaction()
+        {
+            return new ForgeEnergyHandlerSlottedTransaction(this);
         }
     }
 }

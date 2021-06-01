@@ -1,23 +1,26 @@
 package net.minecraftforge.interactable.api;
 
 import com.google.common.collect.ImmutableList;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.interactable.api.observer.IInteractableChangedHandler;
+import net.minecraftforge.interactable.api.observer.IObserverWatchDog;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
-import java.util.*;
-import java.util.function.Predicate;
-import java.util.stream.IntStream;
+import java.util.Iterator;
+import java.util.Optional;
+import java.util.Spliterator;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+
 
 /**
  * A generic readonly container for objects in the Minecraft universe.
  * For ItemStacks this is an IItemHandler, for Fluids this is an IFluidHandler and so forth.
  *
- * @param <T> The type contained in this container.
+ * @param <E> The type contained in this container.
  */
-public interface IInteractable<T> extends Iterable<T>
+public interface IInteractable<E> extends Iterable<E>
 {
-
     /**
      * Returns the size of the container.
      *
@@ -28,21 +31,10 @@ public interface IInteractable<T> extends Iterable<T>
      *
      * @return The size of the container.
      */
-    int size();
-
-    /**
-     * Method to get the contents of the current slot.
-
-     * IMPORTANT: This object MUST NOT be modified. This method is not for
-     * altering a interactables contents. Any implementers who are able to detect
-     * modification through this method should throw an exception.
-     *
-     * SERIOUSLY: DO NOT MODIFY THE RETURNED OBJECT!
-     *
-     * @param slot The slot to get the contents from.
-     * @return A cloned instance of the object in the slot, or null.
-     */
-    T get(final int slot);
+    default int size()
+    {
+        return all().size();
+    }
 
     /**
      * An immutable representation of this inventory.
@@ -54,34 +46,36 @@ public interface IInteractable<T> extends Iterable<T>
      *
      * SERIOUSLY: DO NOT MODIFY THE CONTAINED OBJECTS!
      *
-     *
-     * @return
+     * @return An {@link ImmutableList} with the contents of this interactable.
      */
-    ImmutableList<T> all();
+    ImmutableList<E> all();
 
+    @NotNull
     @Override
-    default Iterator<T> iterator()
+    default Iterator<E> iterator()
     {
         return all().iterator();
     }
 
+    @NotNull
     @Override
-    default Spliterator<T> spliterator()
+    default Spliterator<E> spliterator()
     {
         return all().spliterator();
     }
 
     /**
-     * Allows for the finding of the first slot index that matches the given predicate.
+     * Allows for the finding of the first entry that matches the given predicate.
      *
      * @param checkPredicate The predicate to check with.
-     * @return An OptionalInt, possibly containing the first matching slot, or is empty if no slot is found.
+     * @return An Optional, possibly containing the first matching entry, or is empty if no slot is found.
      */
-    default OptionalInt findFirstSlotMatching(@Nonnull final IInteractableSearchHandler<T> checkPredicate)
+    @NotNull
+    default Optional<E> findFirstMatching(@Nonnull final IInteractableSearchHandler<E> checkPredicate)
     {
-        return IntStream.range(0, size())
-                .filter(slotIndex -> checkPredicate.test(get(slotIndex)))
-                .findFirst();
+        return stream()
+                 .filter(checkPredicate)
+                 .findFirst();
     }
 
     /**
@@ -97,7 +91,8 @@ public interface IInteractable<T> extends Iterable<T>
      *
      * @return A stream with the contents of this container.
      */
-    default Stream<T> stream()
+    @NotNull
+    default Stream<E> stream()
     {
         return all().stream();
     }
@@ -115,8 +110,41 @@ public interface IInteractable<T> extends Iterable<T>
      *
      * @return A stream with the contents of this container.
      */
-    default Stream<T> parallelStream()
+    @NotNull
+    default Stream<E> parallelStream()
     {
         return all().parallelStream();
     }
+
+    /**
+     * Allows for the registration of a observer for interactables.
+     * Gets called every time the interactables contents change (EG a transaction is committed),
+     * and immediately after registration to communicate the initial state.
+     *
+     * @param id The id of the callback, used to remove the callback again when not needed anymore.
+     * @param callback The callback to register.
+     *
+     * @return A watchdog that can be used as an AutoClosable or used to stop watching.
+     * @throws IllegalArgumentException When an observer with the same id is already registered.
+     */
+    IObserverWatchDog<E, ? extends IInteractable<E>> openObserver(ResourceLocation id, IInteractableChangedHandler<E> callback) throws IllegalArgumentException;
+
+    /**
+     * Allows for the deregistration of an observer via its watch dog.
+     *
+     * @param watchDog The watchdog of the observer to deregister.
+     * @throws IllegalArgumentException when the id stored in the watchdog is unknown.
+     */
+    default void closeObserver(final IObserverWatchDog<E, ?> watchDog)
+    {
+        this.closeObserver(watchDog.getId());
+    }
+
+    /**
+     * Allows for the deregistration of an observer via its id.
+     *
+     * @param id The id to deregister.
+     * @throws IllegalArgumentException when the id is unknown.
+     */
+    void closeObserver(ResourceLocation id) throws IllegalArgumentException;
 }

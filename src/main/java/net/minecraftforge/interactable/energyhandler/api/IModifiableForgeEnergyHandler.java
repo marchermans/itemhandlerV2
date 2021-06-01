@@ -1,12 +1,12 @@
 package net.minecraftforge.interactable.energyhandler.api;
 
-import net.minecraftforge.interactable.api.IInteractable;
-import net.minecraftforge.interactable.api.IModifiableInteractable;
+import net.minecraftforge.interactable.api.ISlottedInteractable;
+import net.minecraftforge.interactable.api.IModifiableSlottedInteractable;
 
 /**
  * The default read write interactable interface for Forge Energy.
  *
- * @see IInteractable
+ * @see ISlottedInteractable
  */
-public interface IModifiableForgeEnergyHandler extends IModifiableInteractable<Integer>, IForgeEnergyHandler {
+public interface IModifiableForgeEnergyHandler extends IModifiableSlottedInteractable<Integer, IForgeEnergyHandlerTransaction>, IForgeEnergyHandler {
 }

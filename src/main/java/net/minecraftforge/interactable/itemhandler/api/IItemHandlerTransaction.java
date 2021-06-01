@@ -1,13 +1,13 @@
 package net.minecraftforge.interactable.itemhandler.api;
 
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.interactable.api.IInteractableTransaction;
+import net.minecraftforge.interactable.api.ISlottedInteractableTransaction;
 
 /**
  * The default interactable transaction interface for ItemStacks.
  *
- * @see IInteractableTransaction
+ * @see ISlottedInteractableTransaction
  * @see ItemStack
  */
-public interface IItemHandlerTransaction extends IInteractableTransaction<ItemStack>, IItemHandler {
+public interface IItemHandlerTransaction extends ISlottedInteractableTransaction<ItemStack, IItemHandlerTransaction>, IItemHandler {
 }

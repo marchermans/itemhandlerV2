@@ -1,12 +1,12 @@
 package net.minecraftforge.interactable.fluidhandler;
 
-import net.minecraftforge.interactable.Interactable;
+import net.minecraftforge.interactable.SlottedInteractable;
 import net.minecraftforge.interactable.fluidhandler.api.IFluidHandler;
 import net.minecraftforge.fluids.FluidStack;
 
 import java.util.Collection;
 
-public class FluidHandler extends Interactable<FluidStack> implements IFluidHandler {
+public class FluidHandler extends SlottedInteractable<FluidStack> implements IFluidHandler {
 
     public FluidHandler(int size) {
         super(size);

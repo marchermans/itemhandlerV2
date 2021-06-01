@@ -1,21 +1,21 @@
 package net.minecraftforge.interactable.fluidhandler;
 
-import net.minecraftforge.interactable.ModifiableInteractable;
+import net.minecraftforge.interactable.ModifiableSlottedInteractable;
 import net.minecraftforge.interactable.api.InteractableOperationResult;
-import net.minecraftforge.interactable.api.IInteractableTransaction;
+import net.minecraftforge.interactable.api.ISlottedInteractableTransaction;
 import net.minecraftforge.interactable.api.IInteractableOperationResult;
+import net.minecraftforge.interactable.energyhandler.api.IForgeEnergyHandlerTransaction;
+import net.minecraftforge.interactable.energyhandler.api.IModifiableForgeEnergyHandler;
+import net.minecraftforge.interactable.fluidhandler.api.IFluidHandler;
 import net.minecraftforge.interactable.fluidhandler.api.IFluidHandlerTransaction;
 import net.minecraftforge.interactable.fluidhandler.api.IModifiableFluidHandler;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.interactable.itemhandler.api.IModifiableItemHandler;
 
 import java.util.Collection;
 
-public class ModifiableFluidHandler extends ModifiableInteractable<FluidStack> implements IModifiableFluidHandler {
-
-    /**
-     * The current transaction.
-     */
-    private IInteractableTransaction<FluidStack> activeTransaction;
+public class ModifiableFluidHandler extends ModifiableSlottedInteractable<FluidStack, IFluidHandlerTransaction> implements IModifiableFluidHandler
+{
 
     /**
      * Creates a default handler with the given size.
@@ -53,15 +53,20 @@ public class ModifiableFluidHandler extends ModifiableInteractable<FluidStack> i
      *
      * @return The new transaction, about to become the active transaction.
      */
-    protected FluidHandlerTransaction buildNewTransaction()
+    protected FluidHandlerSlottedTransaction buildNewTransaction()
     {
-        return new FluidHandlerTransaction(this);
+        return new FluidHandlerSlottedTransaction(this);
     }
 
-    public class FluidHandlerTransaction extends AbstractTransaction<FluidStack> implements IFluidHandlerTransaction
+    public static class FluidHandlerSlottedTransaction extends AbstractSlottedTransaction<FluidStack, IFluidHandlerTransaction> implements IFluidHandlerTransaction
     {
-        public FluidHandlerTransaction(ModifiableFluidHandler fluidHandler) {
+        public FluidHandlerSlottedTransaction(ModifiableFluidHandler fluidHandler) {
             super(fluidHandler);
+        }
+
+        public FluidHandlerSlottedTransaction(final FluidHandlerSlottedTransaction transaction)
+        {
+            super(transaction);
         }
 
         @Override
@@ -79,11 +84,11 @@ public class ModifiableFluidHandler extends ModifiableInteractable<FluidStack> i
                 return InteractableOperationResult.conflicting();
 
             final FluidStack insertedStack = stack.copy();
-            insertedStack.amount = stack.amount + toInsert.amount;
+            insertedStack.setAmount(stack.getAmount() + toInsert.getAmount());
 
             FluidStack primary = toInsert.copy();
-            primary.amount = toInsert.amount - insertedStack.amount;
-            if (primary.amount <= 0)
+            primary.setAmount(toInsert.getAmount() - insertedStack.getAmount());
+            if (primary.getAmount() <= 0)
                 primary = null;
 
             this.interactable.set(slot, insertedStack);
@@ -116,7 +121,7 @@ public class ModifiableFluidHandler extends ModifiableInteractable<FluidStack> i
             if (wasConflicted)
                 return InteractableOperationResult.conflicting();
 
-            if (workingStack.amount == toInsert.amount)
+            if (workingStack.getAmount() == toInsert.getAmount())
                 return InteractableOperationResult.failed();
 
             return InteractableOperationResult.success(workingStack, null);
@@ -133,11 +138,11 @@ public class ModifiableFluidHandler extends ModifiableInteractable<FluidStack> i
                 return InteractableOperationResult.failed();
 
             final FluidStack extracted = stack.copy();
-            extracted.amount = Math.min(extracted.amount, amount);
+            extracted.setAmount(Math.min(extracted.getAmount(), amount));
 
             FluidStack remaining = stack.copy();
-            remaining.amount = remaining.amount - extracted.amount;
-            if (remaining.amount <= 0)
+            remaining.setAmount(remaining.getAmount() - extracted.getAmount());
+            if (remaining.getAmount() <= 0)
                 remaining = null;
 
             //Clone the stack again since remaining is also a secondary output.
@@ -145,6 +150,12 @@ public class ModifiableFluidHandler extends ModifiableInteractable<FluidStack> i
             this.onSlotInteracted(slot);
 
             return InteractableOperationResult.success(extracted, remaining);
+        }
+
+        @Override
+        protected IFluidHandlerTransaction buildNewTransaction()
+        {
+            return new FluidHandlerSlottedTransaction(this);
         }
     }
 }
